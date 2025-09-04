@@ -14,10 +14,10 @@ venv/
 # Logs and local files
 *.log
 
-# VSCode настройки (если не хочешь коммитить)
+# VSCode settings
 .vscode/
 
-# pytest cache
+# Pytest cache
 .pytest_cache/
 
 # Coverage reports
@@ -25,13 +25,27 @@ venv/
 .coverage.*
 htmlcov/
 
-# Mypy cache (если используешь)
+# Mypy cache
 .mypy_cache/
 
-# Системный файл MacOS
-.DS_Store
+# Hypothesis tests
+.hypothesis/
 
-# Пакеты и дистрибутивы
+# tox environments
+.tox/
+
+# JetBrains IDEs
+.idea/
+*.iml
+
+# Jupyter notebooks
+.ipynb_checkpoints
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Packages and distributions
 build/
 dist/
 *.egg-info/
