@@ -1,0 +1,37 @@
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+
+# userbot data
+userbot_session.session
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+
+# Logs and local files
+*.log
+
+# VSCode настройки (если не хочешь коммитить)
+.vscode/
+
+# pytest cache
+.pytest_cache/
+
+# Coverage reports
+.coverage
+.coverage.*
+htmlcov/
+
+# Mypy cache (если используешь)
+.mypy_cache/
+
+# Системный файл MacOS
+.DS_Store
+
+# Пакеты и дистрибутивы
+build/
+dist/
+*.egg-info/

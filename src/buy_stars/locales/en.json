@@ -1,0 +1,147 @@
+{
+  "start": {
+    "welcome": "Welcome to Vozik Shop!",
+    "welcome_back": "Welcome back! Click on menu button to continue.",
+    "info": "Via this bot you can purchase telegram stars and telegram premium without KYC verification and cheaper than in the telegram app.\n\nPlease, click menu button below to start using our bot and make your first purchase!"
+  },
+  "menu": {
+    "description": "<b>Vozik Shop 🛒</b>\n\n<b>The cheapest</b> Stars and Telegram Premium — <b>no verification required</b>, available to everyone.\n<blockquote>We accept payments in $TON, $USDT, $USDC, $BTC, $ETH, $BNB, $TRX, $POL, $SOL, $LTC and more.</blockquote>\n\nPlease, choose an action:👇🏻",
+    "settings": "Please, choose an action:👇🏻",
+    "gift_promo": "<b>🎁 Gifts for everyone! 🎁</b>\n\nThe bot now <b>automatically sends you a gift</b> for active referrals!\n\n<blockquote>✅ Get a <b>GIFT 🎁</b> for your first 3 active referrals — those who made at least one purchase\n✅ After that — 1 gift for every next 5 active referrals 🎁!</blockquote>\n🔹 You can exchange the <b>gift for stars</b> or <b>keep it in your profile</b>.\n\n💡 <b>Invite friends</b> using your referral link and receive gifts while they buy stars at the <b>best price on the market</b> ⭐\n\n🎁 Boost your referral link - and get even more rewards! 🎁"
+  },
+  "buy_stars": {
+    "stars_amount": "Enter amount of stars ⭐️ you want to buy (min 50):",
+    "username": "👨‍💻 Choose who do you want to buy stars for:",
+    "enter_username": "👨‍💻 Enter account @username you want to buy stars for:\n\n❗️Make sure such account exists❗️",
+    "invalid_username": "Incorrect username. Enter correct username. It MUST start with @.",
+    "invalid_amount": "Incorrect amount. Enter correct amount of stars (min 50).",
+    "payment_method": "Choose payment method:",
+    "order_ton": {
+      "valid_for": "<b>Order is valid for 30 minutes</b>",
+      "stars_for": "Stars ⭐️ for account",
+      "details": "<b>Payment information</b>:👇🏻\n\nNetwork: TON",
+      "amount": "<b>Amount</b>:",
+      "address": "<b>Address</b>:👇🏻",
+      "memo": "<b>❗️❗️Make sure to add this number in the comment (memo) to the transaction:</b>",
+      "info": "‼️ Send the exact amount to the address above ‼️\n<blockquote>(monitor and <i>take into account</i> the transfer fee, which is deducted from the balance or from the amount sent)</blockquote>\n⚠️<b> Without the comment your order WILL NOT BE PROCESSED </b>⚠️\n\n<blockquote>In case of any issues - contact our support.</blockquote>\n\n<b>❗️Also you can pay in one click via Tonkeeper👇🏻</b>"
+    },
+    "order_usd": {
+      "valid_for": "<b>Order is valid for 30 minutes</b>",
+      "stars_for": "Stars ⭐️ for account",
+      "info": "💸 Payment via crypto (USDT and other cryptocurrencies).\nPress the button below to get to the payment page."
+    },
+    "confirm_payment": "Your transaction is being processed. Please, wait.\n\nYou will receive a notification when we will process your order. For now, you can go back to the menu.",
+    "confirmed_1": "✅ Stars purchase for @",
+    "confirmed_2": "has been completed successfully!",
+    "referral_1": "💸 You received",
+    "referral_2": "TON because your referral just made a purchase!",
+    "error_1": "⚠️ Your payment was successful, but purchase failed. Contact support.",
+    "error_2": "⚠️ Error while processing your payment. Contact support.",
+    "error_3": "❌ We were unable to create payment link. Please try again later."
+  },
+  "buy_tg_premium": {
+    "username": "👨‍💻 Choose who do you want to buy Premium for:",
+    "enter_username": "👨‍💻 Enter account @username you want to buy Premium for:\n\n❗️Make sure such account exists❗️",
+    "duration": "Choose subscription duration:",
+    "invalid_username": "Incorrect username. Enter correct username. It MUST start with @.",
+    "payment_method": "Choose payment method:",
+    "order_ton": {
+      "valid_for": "<b>Order is valid for 30 minutes</b>",
+      "premium_duration": "💎 Telegram Premium subscription for",
+      "premium_for": "months for",
+      "details": "<b>Payment information</b>:👇🏻\n\nNetwork: TON",
+      "amount": "<b>Amount</b>:",
+      "address": "<b>Address</b>:👇🏻",
+      "memo": "<b>❗️❗️Make sure to add this number in the comment (memo) to the transaction:</b>",
+      "info": "‼️ Send the exact amount to the address above ‼️\n<blockquote>(monitor and <i>take into account</i> the transfer fee, which is deducted from the balance or from the amount sent)</blockquote>\n⚠️<b> Without the comment your order WILL NOT BE PROCESSED </b>⚠️\n\n<blockquote>In case of any issues - contact our support.</blockquote>\n\n<b>❗️Also you can pay in one click via Tonkeeper👇🏻</b>"
+    },
+    "order_usd": {
+      "valid_for": "<b>Order is valid for 30 minutes</b>",
+      "premium_duration": "💎 Telegram Premium subscription for",
+      "premium_for": "months for",
+      "info": "💸 Payment via crypto (USDT and other cryptocurrencies).\nPress the button below to get to the payment page."
+    },
+    "confirm_payment": "Your transaction is being processed. Please, wait.\n\nYou will receive a notification when we will process your order. For now, you can go back to the menu.",
+    "confirmed_1": "✅ Telegram Premium purchase for @",
+    "confirmed_2": "has been completed successfully!",
+    "referral_1": "💸 You received",
+    "referral_2": "TON because your referral just made a purchase!",
+    "error_1": "⚠️ Your payment was successful, but purchase failed. Contact support.",
+    "error_2": "⚠️ Error while processing your order. Contact support.",
+    "error_3": "❌ We were unable to create payment link. Please try again later."
+  },
+  "payment": {
+    "unknown_order": "⚠️ Unknown order type.",
+    "error_processing": "⚠️ Error processing the order. Please contact support.",
+    "stars_confirm_1": "✅ Star purchase for",
+    "stars_confirm_2": "completed successfully!",
+    "premium_confirm_1": "✅ Telegram Premium purchase for",
+    "premium_confirm_2": "completed successfully!",
+    "referral_confirm_1": "💸 You received",
+    "referral_confirm_2": "TON commission for a referred user's purchase!",
+    "order_failed": "High traffic right now, purchases are taking longer than usual. Don’t worry — your order will be processed in the queue 😊⏳"
+  },
+  "profile": {
+    "not_found": "Profile not found.",
+    "description": "<b>👥 Affiliate Program</b>\n\n<b>👤 Your profile:</b>\nInvite friends and receive",
+    "commission": "% of our income from their purchases — <b>FOREVER!</b>\nPlus, earn <b>5%</b> from their referrals too!",
+    "referral_link": "<b>Your referral link:</b>",
+    "referral_stats": "Your referral stats:",
+    "referrals": "<b>👥 Referrals:</b>",
+    "active_referrals": "<b>👥 Active referrals:</b>",
+    "balance": "<b>🏦 Balance:</b>",
+    "total_earned": "<b>Earned in total:</b>",
+    "info": "Withdrawals are available from 0.5 TON"
+  },
+  "withdrawal": {
+    "not_found": "User not found.",
+    "not_enough": "Withdrawals are available from 0.5 TON",
+    "amount": "Enter amount for withdrawal:",
+    "invalid_amount": "Enter correct amount:",
+    "not_enough_2": "Not enough TON on your balance.",
+    "wallet": "Enter your TON-wallet:",
+    "sent_info": "✅ Your request for TON withdrawal has been sent successfully!\n\nYour request will be processed within 24 hours 🤝",
+    "confirmed": "✅ Your request has been approved!🫡\n\n💫 Soon TON will arrive at your wallet.",
+    "rejected": "❌ Your request has been rejected because you failed to follow our project's rules."
+  },
+  "language": {
+    "choose": "🌐 Choose your language:",
+    "changed": "✅ Language settings updated"
+  },
+  "keyboards": {
+    "menu": {
+      "main": "⭐ Menu",
+      "buy_stars": "⭐ Buy Stars",
+      "settings": "⚙️ Settings",
+      "buy_tg_premium": "💎 TG Premium",
+      "profile": "👤 Profile",
+      "support": "👨‍💻 Contact support",
+      "language": "🌐 Change language",
+      "back": "🔙 Back to Menu",
+      "back_settings": "🔙 Back",
+      "gift_promo": "🎁 Claim a GIFT"
+    },
+    "withdraw": {
+      "main": "💸 Withdraw",
+      "back": "🔙 Back"
+    },
+    "buy_stars": {
+      "for_myself": "For myself",
+      "for_other": "For someone else",
+      "for_ton": "TON",
+      "for_usd": "USDT (and other crypto)",
+      "back": "🔙 Back",
+      "tonkeeper": "↗️ Open in Tonkeeper",
+      "confirm_payment": "✅ I have paid",
+      "heleket": "💳 Buy with USDT / other crypto"
+    },
+    "buy_tg_premium": {
+      "for_myself": "For myself",
+      "for_other": "For someone else",
+      "back": "🔙 Back",
+      "3_months": "3 months - 12.59$",
+      "6_months": "6 months - 16.79$",
+      "12_months": "12 months - 30.39$"
+    }
+  }
+}

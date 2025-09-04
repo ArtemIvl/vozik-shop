@@ -1,0 +1,13 @@
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+DATABASE_URL = os.getenv("DATABASE_URL")
+FRAGMENT_API_KEY = os.getenv("FRAGMENT_API_KEY")
+FRAGMENT_JWT_KEY = os.getenv("FRAGMENT_JWT_KEY")
+TON_WALLET_ADDRESS = os.getenv("TON_WALLET_ADDRESS")
+HELEKET_API_KEY = os.getenv("HELEKET_API_KEY")
+HELEKET_MERCHANT_ID = os.getenv("HELEKET_MERCHANT_ID")
+HELEKET_WEBHOOK_URL=os.getenv("HELEKET_WEBHOOK_URL")
