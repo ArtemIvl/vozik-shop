@@ -55,3 +55,9 @@ async def calculate_sell_stars_payout_in_ton(star_amount: int) -> Decimal:
     payout_usd_total = payout_usd_per_star * star_amount
     payout_ton = payout_usd_total / ton_usd_price
     return payout_ton.quantize(Decimal("0.001"), rounding=ROUND_DOWN)
+
+
+async def calculate_sell_stars_payout_in_usdt(star_amount: int) -> Decimal:
+    payout_usd_per_star = USD_PRICE_PER_STAR * (Decimal("1") - SELL_STARS_DISCOUNT)
+    payout_usd_total = payout_usd_per_star * star_amount
+    return payout_usd_total.quantize(Decimal("0.01"), rounding=ROUND_DOWN)

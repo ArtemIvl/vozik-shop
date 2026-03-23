@@ -40,7 +40,7 @@ export default function SellStarsOrderModal({ order, onClose, t }) {
 
         <div className="mt-3 rounded-xl border border-white/10 bg-tg-surface-soft p-3">
           <p className="text-xs text-tg-muted">{t.sellStarsYouGet}</p>
-          <p className="text-sm text-tg-text">{order.payoutTon} TON</p>
+          <p className="text-sm text-tg-text">{order.payoutUsdt || order.payoutTon} USDT</p>
         </div>
 
       </div>

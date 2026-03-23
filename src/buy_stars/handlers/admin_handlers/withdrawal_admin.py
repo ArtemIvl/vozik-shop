@@ -6,7 +6,7 @@ from aiogram.exceptions import TelegramForbiddenError
 from keyboards.admin_keyboards import pending_withdraw_keyboard, withdraw_info_keyboard, confirm_withdraw_keyboard, reject_withdraw_keyboard
 from db.models.withdrawal import WithdrawalStatus
 from services.localization import t, get_lang
-from services.ton_withdrawal import send_ton_withdrawal
+from services.ton_withdrawal import get_sender_usdt_balance, send_usdt_withdrawal
 from services.withdrawal_flow import build_withdrawal_admin_message
 
 withdraw_admin_router = Router()
@@ -72,10 +72,23 @@ async def confirm_withdrawal_callback(callback: types.CallbackQuery) -> None:
             return
 
         user = await get_user_by_id(session, withdrawal.user_id)
-        ok, details = await send_ton_withdrawal(withdrawal.ton_address, withdrawal.ton_amount)
+        try:
+            available_balance = await get_sender_usdt_balance()
+        except Exception as exc:
+            await callback.answer(f"Не удалось проверить баланс USDT: {exc}", show_alert=True)
+            return
+
+        if available_balance < withdrawal.ton_amount:
+            await callback.answer(
+                f"Недостаточно USDT на кошельке бота. Доступно: {available_balance:.2f} USDT, требуется: {withdrawal.ton_amount:.2f} USDT.",
+                show_alert=True,
+            )
+            return
+
+        ok, details = await send_usdt_withdrawal(withdrawal.ton_address, withdrawal.ton_amount)
 
         if not ok:
-            await callback.answer(f"Не удалось отправить TON: {details}", show_alert=True)
+            await callback.answer(f"Не удалось отправить USDT: {details}", show_alert=True)
             await callback.message.edit_text(
                 await build_withdrawal_admin_message(session, user, withdrawal) + f"\n\n❌ Ошибка отправки: <code>{details}</code>",
                 parse_mode="HTML",

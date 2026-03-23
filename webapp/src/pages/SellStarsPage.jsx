@@ -4,10 +4,12 @@ import LoadingPulse from "../components/common/LoadingPulse";
 import SellStarsOrderModal from "../components/common/SellStarsOrderModal";
 import ConfirmModal from "../components/common/ConfirmModal";
 import { useCountdown } from "../hooks/useCountdown";
+import { openExternalLink } from "../services/tonkeeper";
 import {
   cancelMiniAppSellStarsOrder,
   createMiniAppSellStarsOrder,
   getMiniAppPendingSellStarsOrders,
+  getMiniAppSellStarsQuote,
   getMiniAppSellStarsInvoice
 } from "../services/api";
 
@@ -18,7 +20,7 @@ function openInvoice(url) {
     tg.openInvoice(url);
     return;
   }
-  window.open(url, "_blank", "noopener,noreferrer");
+  openExternalLink(url);
 }
 
 function CountdownText({ seconds, prefix }) {
@@ -26,7 +28,7 @@ function CountdownText({ seconds, prefix }) {
   return <p className="mt-1 text-xs text-star">{prefix}: {formatted}</p>;
 }
 
-export default function SellStarsPage({ initData, onOrdersUpdated, t }) {
+export default function SellStarsPage({ initData, isActive, onOrdersUpdated, t }) {
   const [starsAmount, setStarsAmount] = useState("50");
   const [loading, setLoading] = useState(false);
   const [pendingLoading, setPendingLoading] = useState(false);
@@ -37,11 +39,16 @@ export default function SellStarsPage({ initData, onOrdersUpdated, t }) {
   const [pendingOrders, setPendingOrders] = useState([]);
   const [confirmCancelOrder, setConfirmCancelOrder] = useState(null);
   const [watchedOrderIds, setWatchedOrderIds] = useState([]);
+  const [quoteUsdt, setQuoteUsdt] = useState("");
+  const [quoteLoading, setQuoteLoading] = useState(false);
+  const [loadedOnce, setLoadedOnce] = useState(false);
 
-  const loadPending = async () => {
+  const loadPending = async ({ silent = false } = {}) => {
     if (!initData) return;
     try {
-      setPendingLoading(true);
+      if (!silent) {
+        setPendingLoading(true);
+      }
       const response = await getMiniAppPendingSellStarsOrders({ init_data: initData });
       const nextOrders = response.orders || [];
       setPendingOrders(nextOrders);
@@ -58,25 +65,67 @@ export default function SellStarsPage({ initData, onOrdersUpdated, t }) {
         }
         return current.filter((orderId) => pendingIds.has(orderId));
       });
+      setLoadedOnce(true);
       onOrdersUpdated?.();
     } catch {
       setPendingOrders([]);
     } finally {
-      setPendingLoading(false);
+      if (!silent) {
+        setPendingLoading(false);
+      }
     }
   };
 
   useEffect(() => {
+    if (!initData || loadedOnce) return;
     loadPending();
-  }, [initData]);
+  }, [initData, loadedOnce]);
 
   useEffect(() => {
-    if (watchedOrderIds.length === 0 || !initData) return undefined;
+    if (!isActive || watchedOrderIds.length === 0 || !initData) return undefined;
     const id = window.setInterval(() => {
-      loadPending();
+      loadPending({ silent: true });
     }, 5000);
     return () => window.clearInterval(id);
-  }, [initData, watchedOrderIds]);
+  }, [initData, isActive, watchedOrderIds]);
+
+  useEffect(() => {
+    if (!initData) return undefined;
+
+    const parsed = Number(starsAmount);
+    if (!Number.isInteger(parsed) || parsed < 50) {
+      setQuoteUsdt("");
+      setQuoteLoading(false);
+      return undefined;
+    }
+
+    let active = true;
+    setQuoteLoading(true);
+    const timeoutId = window.setTimeout(async () => {
+      try {
+        const response = await getMiniAppSellStarsQuote({
+          init_data: initData,
+          stars_amount: parsed
+        });
+        if (active) {
+          setQuoteUsdt(response.payoutUsdt || response.payoutTon || "");
+        }
+      } catch {
+        if (active) {
+          setQuoteUsdt("");
+        }
+      } finally {
+        if (active) {
+          setQuoteLoading(false);
+        }
+      }
+    }, 250);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timeoutId);
+    };
+  }, [initData, starsAmount]);
 
   const handleCreate = async (event) => {
     event.preventDefault();
@@ -86,7 +135,6 @@ export default function SellStarsPage({ initData, onOrdersUpdated, t }) {
 
     const parsed = Number(starsAmount);
     if (!Number.isInteger(parsed) || parsed < 50) {
-      setError(t.minStarsError);
       return;
     }
 
@@ -180,10 +228,22 @@ export default function SellStarsPage({ initData, onOrdersUpdated, t }) {
               min="50"
               step="1"
               value={starsAmount}
-              onChange={(event) => setStarsAmount(event.target.value)}
+              onChange={(event) => {
+                setStarsAmount(event.target.value);
+                setError("");
+              }}
               className="w-full rounded-xl border border-white/15 bg-tg-surface-soft px-3 py-2 text-tg-text outline-none focus:border-star"
             />
           </div>
+
+          {quoteUsdt ? (
+            <div className="rounded-xl border border-[#FFD767]/25 bg-[#FFD767]/10 px-3 py-3">
+              <p className="text-xs uppercase tracking-[0.14em] text-[#FFD767]">{t.sellStarsEstimate}</p>
+              <p className="mt-1 text-lg font-semibold text-tg-text">
+                {quoteLoading ? t.loading : `${quoteUsdt} USDT`}
+              </p>
+            </div>
+          ) : null}
 
           {error ? <p className="rounded-xl border border-red-400/40 bg-red-400/10 px-3 py-2 text-sm text-red-300">{error}</p> : null}
 
@@ -226,7 +286,7 @@ export default function SellStarsPage({ initData, onOrdersUpdated, t }) {
                 <p className="text-sm text-tg-text">
                   #{order.orderId} • {order.starsAmount} {t.stars}
                 </p>
-                <p className="mt-1 text-xs text-tg-muted">{t.sellStarsYouGet}: {order.payoutTon} TON</p>
+                <p className="mt-1 text-xs text-tg-muted">{t.sellStarsYouGet}: {order.payoutUsdt || order.payoutTon} USDT</p>
                 <CountdownText seconds={order.expiresInSeconds} prefix={t.expiresIn} />
               </button>
               <div className="mt-2 grid grid-cols-2 gap-2">

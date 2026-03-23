@@ -17,7 +17,7 @@ from requests.sell_star_order_requests import (
 )
 from requests.user_requests import get_user_by_telegram_id
 from services.localization import get_lang, t
-from services.payment import calculate_sell_stars_payout_in_ton
+from services.payment import calculate_sell_stars_payout_in_usdt
 
 router = Router()
 
@@ -89,12 +89,12 @@ async def handle_sell_stars_amount(message: Message, state: FSMContext) -> None:
         if not user:
             await message.answer(t(lang, "withdrawal.not_found"), reply_markup=back_to_menu_keyboard(lang))
             return
-        payout_ton = await calculate_sell_stars_payout_in_ton(stars_amount)
+        payout_usdt = await calculate_sell_stars_payout_in_usdt(stars_amount)
         order = await create_sell_star_order(
             session=session,
             user_id=user.id,
             stars_amount=stars_amount,
-            payout_ton=payout_ton,
+            payout_usdt=payout_usdt,
         )
 
     await state.clear()
@@ -102,7 +102,7 @@ async def handle_sell_stars_amount(message: Message, state: FSMContext) -> None:
         (
             f"{t(lang, 'sell_stars.quote_title')}\n\n"
             f"{t(lang, 'sell_stars.quote_stars')} <b>{stars_amount}</b> ⭐️\n"
-            f"{t(lang, 'sell_stars.quote_payout')} <b>{payout_ton}</b> TON\n\n"
+            f"{t(lang, 'sell_stars.quote_payout')} <b>{payout_usdt}</b> USDT\n\n"
             f"{t(lang, 'sell_stars.quote_info')}"
         ),
         parse_mode="HTML",
@@ -207,8 +207,8 @@ async def handle_successful_sell_stars_payment(message: Message) -> None:
         (
             f"{t(lang, 'sell_stars.payment_success')}\n\n"
             f"{t(lang, 'sell_stars.quote_stars')} <b>{order.stars_amount}</b> ⭐️\n"
-            f"{t(lang, 'sell_stars.quote_payout')} <b>{order.payout_ton}</b> TON\n"
-            f"{t(lang, 'profile.balance')} <b>{user.referral_balance:.4f}</b> TON"
+            f"{t(lang, 'sell_stars.quote_payout')} <b>{order.payout_ton}</b> USDT\n"
+            f"{t(lang, 'profile.balance')} <b>{user.balance:.2f}</b> USDT"
         ),
         parse_mode="HTML",
         reply_markup=back_to_menu_keyboard(lang),

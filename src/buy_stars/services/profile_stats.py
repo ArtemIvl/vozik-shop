@@ -51,7 +51,7 @@ async def get_profile_stats(session: AsyncSession, user: User) -> dict:
             SellStarOrder.status == SellStarOrderStatus.PAID,
         )
     )
-    exchanged_stars_total, received_ton_total = sell_stats.one()
+    exchanged_stars_total, received_usdt_total = sell_stats.one()
 
     paid_buy_rows = await session.execute(
         select(
@@ -93,17 +93,17 @@ async def get_profile_stats(session: AsyncSession, user: User) -> dict:
     else:
         outperform_percent = round((sum(1 for score in other_scores if current_score > score) / len(other_scores)) * 100)
 
-    received_ton_decimal = Decimal(received_ton_total or 0)
-    referral_earned_decimal = Decimal(user.referral_total_earned or 0)
+    received_usdt_decimal = Decimal(received_usdt_total or 0)
+    referral_earned_decimal = Decimal(user.total_earned or 0)
 
     return {
         "totalOrdersCount": total_orders_count or 0,
         "purchasedStarsTotal": purchased_stars_total or 0,
         "premiumMonthsTotal": premium_months_total or 0,
         "exchangedStarsTotal": exchanged_stars_total or 0,
-        "receivedTonTotal": format_decimal(received_ton_decimal, places=4),
-        "referralEarnedTon": format_decimal(referral_earned_decimal, places=4),
-        "totalEarnedTon": format_decimal(received_ton_decimal + referral_earned_decimal, places=4),
+        "receivedUsdtTotal": format_decimal(received_usdt_decimal, places=2),
+        "referralEarnedUsdt": format_decimal(referral_earned_decimal, places=2),
+        "totalEarnedUsdt": format_decimal(received_usdt_decimal + referral_earned_decimal, places=2),
         "scorePoints": current_score,
         "outperformPercent": outperform_percent,
     }

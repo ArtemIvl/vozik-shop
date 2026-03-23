@@ -10,9 +10,9 @@ async def create_withdrawal_request(
 ) -> Withdrawal:
 
     user = await get_user_by_id(session, user_id)
-    if user.referral_balance < amount:
+    if user.balance < amount:
         raise ValueError("Insufficient stars for withdrawal.")
-    user.referral_balance -= amount
+    user.balance -= amount
 
     withdrawal = Withdrawal(
         user_id=user_id,
@@ -59,7 +59,7 @@ async def reject_withdrawal_and_refund(session: AsyncSession, withdrawal_id: int
         return
 
     user = await get_user_by_id(session, withdrawal.user_id)
-    user.referral_balance += Decimal(withdrawal.ton_amount)
+    user.balance += Decimal(withdrawal.ton_amount)
     withdrawal.status = WithdrawalStatus.REJECTED
     await session.commit()
 

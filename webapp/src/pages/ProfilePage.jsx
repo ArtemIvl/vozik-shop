@@ -33,7 +33,7 @@ export default function ProfilePage({ initData, t }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [amount, setAmount] = useState("0.5");
+  const [amount, setAmount] = useState("1");
   const [wallet, setWallet] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [savingWallet, setSavingWallet] = useState(false);
@@ -64,6 +64,7 @@ export default function ProfilePage({ initData, t }) {
     window.Telegram?.WebApp?.HapticFeedback?.impactOccurred("light");
 
     if (!isLikelyTonWallet(wallet)) {
+      setWallet(profile?.savedTonWallet || "");
       setOverlayMessage(t.invalidWallet);
       return;
     }
@@ -76,7 +77,7 @@ export default function ProfilePage({ initData, t }) {
         wallet
       });
       setOverlayMessage(response.message || "Withdrawal request sent");
-      setAmount("0.5");
+      setAmount("1");
       await loadProfile();
     } catch (requestError) {
       setOverlayMessage(requestError.message || t.withdraw);
@@ -88,6 +89,7 @@ export default function ProfilePage({ initData, t }) {
   const handleSaveWallet = async () => {
     window.Telegram?.WebApp?.HapticFeedback?.impactOccurred("light");
     if (!isLikelyTonWallet(wallet)) {
+      setWallet(profile?.savedTonWallet || "");
       setOverlayMessage(t.invalidWallet);
       return;
     }
@@ -100,6 +102,7 @@ export default function ProfilePage({ initData, t }) {
       setOverlayMessage(response.message || t.walletSaved);
       await loadProfile();
     } catch (requestError) {
+      setWallet(profile?.savedTonWallet || "");
       setOverlayMessage(requestError.message || t.saveWallet);
     } finally {
       setSavingWallet(false);
@@ -133,11 +136,8 @@ export default function ProfilePage({ initData, t }) {
             <div className="relative">
               <p className="text-[11px] uppercase tracking-[0.22em] text-[#FFD767]">{t.balance}</p>
               <p className="mt-2 text-4xl font-semibold leading-none text-tg-text">
-                {profile.referralBalanceTon}
-                <span className="ml-2 text-base text-[#FFD767]">TON</span>
-              </p>
-              <p className="mt-3 text-sm text-tg-muted">
-                {t.totalEarned}: <span className="text-tg-text">{profile.referralTotalEarnedTon} TON</span>
+                {profile.balanceUsdt || profile.referralBalanceUsdt || profile.referralBalanceTon}
+                <span className="ml-2 text-base text-[#FFD767]">USDT</span>
               </p>
 
               <div className="mt-5 grid grid-cols-2 gap-2">
@@ -151,7 +151,7 @@ export default function ProfilePage({ initData, t }) {
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-3">
                   <p className="text-[11px] text-tg-muted">{t.referralEarned}</p>
-                  <p className="mt-1 text-xl font-semibold text-tg-text">{profile.referralEarnedTon}</p>
+                  <p className="mt-1 text-xl font-semibold text-tg-text">{profile.referralEarnedUsdt || profile.referralEarnedTon}</p>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-3">
                   <p className="text-[11px] text-tg-muted">{t.commission}</p>
@@ -170,7 +170,7 @@ export default function ProfilePage({ initData, t }) {
               <StatTile label={t.totalOrders} value={profile.totalOrdersCount} accent="gold" />
               <StatTile label={t.purchasedStars} value={profile.purchasedStarsTotal} accent="cyan" />
               <StatTile label={t.exchangedStars} value={profile.exchangedStarsTotal} accent="emerald" />
-              <StatTile label={t.receivedTon} value={profile.receivedTonTotal} accent="rose" suffix="TON" />
+              <StatTile label={t.receivedTon} value={profile.receivedUsdtTotal || profile.receivedTonTotal} accent="rose" suffix="USDT" />
             </div>
           </div>
 
@@ -195,12 +195,12 @@ export default function ProfilePage({ initData, t }) {
                     setLinkCopied(true);
                     window.setTimeout(() => setLinkCopied(false), 1800);
                   }}
-                  className="rounded-full border border-[#FFD767]/25 bg-[#FFD767]/10 px-3 py-1 text-[11px] uppercase tracking-[0.14em] text-[#FFD767]"
+                  className="rounded-full border border-[#FFD767]/25 bg-[#FFD767]/10 px-3 py-1 text-[10px] uppercase tracking-[0.08em] text-[#FFD767]"
                 >
                   {linkCopied ? t.referralCopied : t.copyReferral}
                 </button>
               </div>
-              <p className="mt-3 break-all rounded-2xl border border-[#FFD767]/20 bg-[#FFD767]/8 px-3 py-3 text-sm text-[#FFD767]">
+              <p className="mt-3 overflow-hidden text-ellipsis whitespace-nowrap rounded-2xl border border-[#FFD767]/20 bg-[#FFD767]/8 px-3 py-3 text-xs text-[#FFD767]">
                 {profile.referralLink}
               </p>
             </div>
@@ -212,7 +212,7 @@ export default function ProfilePage({ initData, t }) {
         <div className="flex items-center justify-between gap-3">
           <div>
             <h3 className="text-base font-semibold text-tg-text">{t.withdraw}</h3>
-            <p className="mt-1 text-sm text-tg-muted">{profile?.minWithdrawalTon || "0.5"} TON+</p>
+            <p className="mt-1 text-sm text-tg-muted">{profile?.minWithdrawalUsdt || profile?.minWithdrawalTon || "1"} USDT+</p>
           </div>
         </div>
 
@@ -222,18 +222,18 @@ export default function ProfilePage({ initData, t }) {
               <label className="mb-1 block text-sm text-tg-muted">{t.amountTon}</label>
               <input
                 type="number"
-                min="0.5"
+                min="1"
                 step="0.1"
                 value={amount}
                 onChange={(event) => setAmount(event.target.value)}
-                className="w-full rounded-2xl border border-white/15 bg-tg-surface-soft px-3 py-3 text-tg-text outline-none focus:border-[#FFD767]"
+                className="h-[50px] w-full rounded-2xl border border-white/15 bg-tg-surface-soft px-3 py-3 text-tg-text outline-none focus:border-[#FFD767]"
               />
             </div>
             <div className="flex items-end">
               <button
                 type="button"
-                onClick={() => setAmount(profile?.referralBalanceTon || "0.5")}
-                className="rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-tg-text"
+                onClick={() => setAmount(profile?.balanceUsdt || profile?.referralBalanceUsdt || profile?.referralBalanceTon || "1")}
+                className="h-[50px] rounded-2xl border border-white/15 bg-white/5 px-4 text-sm text-tg-text"
               >
                 Max
               </button>
@@ -255,14 +255,14 @@ export default function ProfilePage({ initData, t }) {
               type="button"
               onClick={handleSaveWallet}
               disabled={savingWallet || !wallet.trim()}
-              className="rounded-2xl border border-[#FFD767]/35 bg-[#FFD767]/12 px-3 py-2.5 text-sm font-semibold text-[#FFD767] disabled:opacity-60"
+              className="rounded-2xl border border-[#FFD767]/35 bg-[#FFD767]/12 px-3 py-2.5 text-xs font-semibold text-[#FFD767] disabled:opacity-60"
             >
               {savingWallet ? t.sending : t.saveWallet}
             </button>
 
             <button
               disabled={submitting}
-              className="rounded-2xl bg-[#FFD767] px-3 py-2.5 text-sm font-semibold text-ink-dark disabled:opacity-60"
+              className="rounded-2xl bg-[#FFD767] px-3 py-2.5 text-xs font-semibold text-ink-dark disabled:opacity-60"
             >
               {submitting ? t.sending : t.withdraw}
             </button>

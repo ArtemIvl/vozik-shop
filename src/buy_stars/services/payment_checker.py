@@ -108,7 +108,7 @@ async def process_order(order: Order, tx_data: list, bot: Bot):
                     lang = await get_lang(referrer.telegram_id)
                     await bot.send_message(
                         referrer.telegram_id,
-                        f"{t(lang, 'payment.referral_confirm_1')} {bonus:.4f} {t(lang, 'payment.referral_confirm_2')}"
+                        f"{t(lang, 'payment.referral_confirm_1')} {bonus:.2f} {t(lang, 'payment.referral_confirm_2')}"
                     )
     except Exception as e:
         print(f"[process_order] Ошибка в заказе #{order.id}: {e}")

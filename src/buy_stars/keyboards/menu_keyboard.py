@@ -24,10 +24,10 @@ def menu_keyboard(lang: str) -> InlineKeyboardMarkup:
             InlineKeyboardButton(text=t(lang, 'keyboards.menu.buy_tg_premium'), callback_data="buy_tg_premium")
         ],
         [
-            InlineKeyboardButton(text=t(lang, 'keyboards.menu.gift_promo'), callback_data="gift_promo")
+            InlineKeyboardButton(text=t(lang, 'keyboards.menu.sell_stars'), callback_data="sell_stars")
         ],
         [
-            InlineKeyboardButton(text=t(lang, 'keyboards.menu.sell_stars'), callback_data="sell_stars")
+            InlineKeyboardButton(text=t(lang, 'keyboards.menu.gift_promo'), callback_data="gift_promo")
         ],
         [
             InlineKeyboardButton(text=t(lang, 'keyboards.menu.profile'), callback_data="profile")

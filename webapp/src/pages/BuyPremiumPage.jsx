@@ -6,7 +6,7 @@ import LoadingPulse from "../components/common/LoadingPulse";
 import ConfirmModal from "../components/common/ConfirmModal";
 import { PREMIUM_PLANS } from "../constants/premiumPlans";
 import { cancelMiniAppOrder, createMiniAppPremiumOrder, getMiniAppOrderPaymentLink, getMiniAppPendingOrders } from "../services/api";
-import { openTonkeeper } from "../services/tonkeeper";
+import { openExternalLink, openTonkeeper } from "../services/tonkeeper";
 import { useCountdown } from "../hooks/useCountdown";
 
 function CountdownText({ seconds, prefix }) {
@@ -14,7 +14,7 @@ function CountdownText({ seconds, prefix }) {
   return <p className="mt-1 text-xs text-star">{prefix}: {formatted}</p>;
 }
 
-export default function BuyPremiumPage({ initData, tgUser, sendData, onOrdersUpdated, t }) {
+export default function BuyPremiumPage({ initData, tgUser, sendData, isActive, onOrdersUpdated, t }) {
   const [recipientMode, setRecipientMode] = useState("self");
   const [username, setUsername] = useState("");
   const [months, setMonths] = useState(3);
@@ -27,6 +27,7 @@ export default function BuyPremiumPage({ initData, tgUser, sendData, onOrdersUpd
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [confirmCancelOrder, setConfirmCancelOrder] = useState(null);
   const [watchedOrderIds, setWatchedOrderIds] = useState([]);
+  const [loadedOnce, setLoadedOnce] = useState(false);
 
   const selfUsername = tgUser?.username || "";
 
@@ -37,10 +38,12 @@ export default function BuyPremiumPage({ initData, tgUser, sendData, onOrdersUpd
 
   const canSubmit = !!targetUsername && !loading;
 
-  const loadPendingOrders = async () => {
+  const loadPendingOrders = async ({ silent = false } = {}) => {
     if (!initData) return;
     try {
-      setPendingLoading(true);
+      if (!silent) {
+        setPendingLoading(true);
+      }
       const response = await getMiniAppPendingOrders({
         init_data: initData,
         order_type: "premium"
@@ -60,25 +63,29 @@ export default function BuyPremiumPage({ initData, tgUser, sendData, onOrdersUpd
         }
         return current.filter((orderId) => pendingIds.has(orderId));
       });
+      setLoadedOnce(true);
       onOrdersUpdated?.();
     } catch {
       setPendingOrders([]);
     } finally {
-      setPendingLoading(false);
+      if (!silent) {
+        setPendingLoading(false);
+      }
     }
   };
 
   useEffect(() => {
+    if (!initData || loadedOnce) return;
     loadPendingOrders();
-  }, [initData]);
+  }, [initData, loadedOnce]);
 
   useEffect(() => {
-    if (watchedOrderIds.length === 0 || !initData) return undefined;
+    if (!isActive || watchedOrderIds.length === 0 || !initData) return undefined;
     const id = window.setInterval(() => {
-      loadPendingOrders();
+      loadPendingOrders({ silent: true });
     }, 5000);
     return () => window.clearInterval(id);
-  }, [initData, watchedOrderIds]);
+  }, [initData, isActive, watchedOrderIds]);
 
   const handleCreateOrder = async (event) => {
     event.preventDefault();
@@ -151,7 +158,7 @@ export default function BuyPremiumPage({ initData, tgUser, sendData, onOrdersUpd
         order_id: order.orderId
       });
       if (response.invoiceUrl) {
-        window.open(response.invoiceUrl, "_blank", "noopener,noreferrer");
+        openExternalLink(response.invoiceUrl);
       }
     } catch (requestError) {
       setWatchedOrderIds((current) => current.filter((item) => item !== order.orderId));
@@ -301,7 +308,7 @@ export default function BuyPremiumPage({ initData, tgUser, sendData, onOrdersUpd
                   #{order.orderId} • {order.months} {t.months} • @{order.toUsername}
                 </p>
                 <p className="mt-1 text-xs text-tg-muted">
-                  {order.paymentType} • {order.priceTon ? `${order.priceTon} TON` : `${order.priceUsdt} USD`} • {order.status}
+                  {order.paymentType} • {order.priceTon ? `${order.priceTon} TON` : `${order.priceUsdt} USDT`} • {order.status}
                 </p>
                 <CountdownText seconds={order.expiresInSeconds} prefix={t.expiresIn} />
               </button>

@@ -11,7 +11,7 @@ export default function ProfileHeader({
       <div className="absolute -left-8 -bottom-10 h-28 w-28 rounded-full bg-star/10 blur-2xl" />
 
       <div className="relative flex items-center gap-4">
-        <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br from-vozik/25 to-emerald-500/20">
+        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br from-vozik/25 to-emerald-500/20 shadow-lg shadow-black/20">
           <img
             src={logoSrc}
             alt="Vozik bot logo"
@@ -24,7 +24,7 @@ export default function ProfileHeader({
           />
           <span
             style={{ display: "none" }}
-            className="h-full w-full items-center justify-center text-lg font-bold text-ink-dark"
+            className="h-full w-full items-center justify-center text-xl font-bold text-ink-dark"
           >
             {initials}
           </span>

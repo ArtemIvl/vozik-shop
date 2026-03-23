@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from decimal import Decimal
 from db.models.order import OrderType, Order, OrderStatus
 from datetime import datetime, timezone
+from services.payment import get_ton_price_usd
 
 async def get_user_by_telegram_id(
     session: AsyncSession, telegram_id: int
@@ -137,8 +138,8 @@ async def add_referral_bonus_usd(session: AsyncSession, user: User, price_usd: D
     
     # Прямой бонус
     bonus_1 = profit * (referrer.referral_commission or Decimal("0.1"))
-    referrer.referral_balance += bonus_1
-    referrer.referral_total_earned += bonus_1
+    referrer.balance += bonus_1
+    referrer.total_earned += bonus_1
     bonuses.append((referrer, bonus_1))
 
     # Бонус второго уровня
@@ -146,8 +147,8 @@ async def add_referral_bonus_usd(session: AsyncSession, user: User, price_usd: D
         referrer2 = await session.get(User, referrer.referred_by)
         if referrer2:
             bonus_2 = profit * Decimal("0.05")
-            referrer2.referral_balance += bonus_2
-            referrer2.referral_total_earned += bonus_2
+            referrer2.balance += bonus_2
+            referrer2.total_earned += bonus_2
             bonuses.append((referrer2, bonus_2))
 
     await session.commit()
@@ -165,14 +166,19 @@ async def add_referral_bonus(session: AsyncSession, user: User, price_ton: Decim
 
     margin = Decimal("1.05") if order_type == OrderType.PREMIUM else Decimal("1.11")
     cost = price_ton / margin
-    profit = price_ton - cost
+    profit_ton = price_ton - cost
+    if profit_ton <= 0:
+        return bonuses
+
+    ton_price_usd = await get_ton_price_usd()
+    profit = (profit_ton * ton_price_usd).quantize(Decimal("0.0001"))
     if profit <= 0:
         return bonuses
     
     # Прямой бонус
     bonus_1 = profit * (referrer.referral_commission or Decimal("0.1"))
-    referrer.referral_balance += bonus_1
-    referrer.referral_total_earned += bonus_1
+    referrer.balance += bonus_1
+    referrer.total_earned += bonus_1
     bonuses.append((referrer, bonus_1))
 
     # Бонус второго уровня
@@ -180,8 +186,8 @@ async def add_referral_bonus(session: AsyncSession, user: User, price_ton: Decim
         referrer2 = await session.get(User, referrer.referred_by)
         if referrer2:
             bonus_2 = profit * Decimal("0.05")
-            referrer2.referral_balance += bonus_2
-            referrer2.referral_total_earned += bonus_2
+            referrer2.balance += bonus_2
+            referrer2.total_earned += bonus_2
             bonuses.append((referrer2, bonus_2))
 
     await session.commit()

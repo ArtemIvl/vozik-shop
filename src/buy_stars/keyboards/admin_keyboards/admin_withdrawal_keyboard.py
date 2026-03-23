@@ -40,7 +40,7 @@ async def pending_withdraw_keyboard(
             inline_keyboard.append(
                 [
                     InlineKeyboardButton(
-                        text=f"Вывод на сумму {withdrawal.ton_amount} TON",
+                        text=f"Вывод на сумму {withdrawal.ton_amount} USDT",
                         callback_data=f"withdraw_info_{withdrawal.id}",
                     )
                 ]

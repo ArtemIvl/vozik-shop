@@ -34,7 +34,7 @@
     "confirmed_1": "✅ Stars purchase for @",
     "confirmed_2": "has been completed successfully!",
     "referral_1": "💸 You received",
-    "referral_2": "TON because your referral just made a purchase!",
+    "referral_2": "USDT because your referral just made a purchase!",
     "error_1": "⚠️ Your payment was successful, but purchase failed. Contact support.",
     "error_2": "⚠️ Error while processing your payment. Contact support.",
     "error_3": "❌ We were unable to create payment link. Please try again later."
@@ -65,7 +65,7 @@
     "confirmed_1": "✅ Telegram Premium purchase for @",
     "confirmed_2": "has been completed successfully!",
     "referral_1": "💸 You received",
-    "referral_2": "TON because your referral just made a purchase!",
+    "referral_2": "USDT because your referral just made a purchase!",
     "error_1": "⚠️ Your payment was successful, but purchase failed. Contact support.",
     "error_2": "⚠️ Error while processing your order. Contact support.",
     "error_3": "❌ We were unable to create payment link. Please try again later."
@@ -76,7 +76,7 @@
     "quote_title": "<b>Sell Stars order</b>",
     "quote_stars": "<b>Stars to sell:</b>",
     "quote_payout": "<b>You will receive:</b>",
-    "quote_info": "Press the button below and pay with Telegram Stars. After successful payment, TON will be credited to your balance.",
+    "quote_info": "Press the button below and pay with Telegram Stars. After successful payment, USDT will be credited to your balance.",
     "invoice_title": "Sell Telegram Stars",
     "invoice_description": "Payment for selling Stars in Vozik Shop",
     "invoice_label": "Stars payment",
@@ -84,7 +84,7 @@
     "order_not_pending": "This order is no longer pending.",
     "precheckout_error": "Unable to process this payment. Please create a new order.",
     "already_processed": "This order has already been processed.",
-    "payment_success": "✅ Payment received. TON has been credited to your balance."
+    "payment_success": "✅ Payment received. USDT has been credited to your balance."
   },
   "payment": {
     "unknown_order": "⚠️ Unknown order type.",
@@ -94,7 +94,7 @@
     "premium_confirm_1": "✅ Telegram Premium purchase for",
     "premium_confirm_2": "completed successfully!",
     "referral_confirm_1": "💸 You received",
-    "referral_confirm_2": "TON commission for a referred user's purchase!",
+    "referral_confirm_2": "USDT commission for a referred user's purchase!",
     "order_failed": "High traffic right now, purchases are taking longer than usual. Don’t worry — your order will be processed in the queue 😊⏳"
   },
   "profile": {
@@ -111,25 +111,27 @@
     "total_orders": "<b>🧾 Total paid orders:</b>",
     "purchased_stars": "<b>⭐ Stars purchased:</b>",
     "exchanged_stars": "<b>💱 Stars exchanged:</b>",
-    "received_ton": "<b>💎 TON received for sold stars:</b>",
+    "received_ton": "<b>💎 USDT received for sold stars:</b>",
     "referral_earned": "<b>🤝 Referral earned:</b>",
-    "info": "Withdrawals are available from 0.5 TON"
+    "commission_short": "Commission",
+    "activity": "Activity",
+    "info": "Withdrawals are available from 1 USDT"
   },
   "withdrawal": {
     "not_found": "User not found.",
-    "not_enough": "Withdrawals are available from 0.5 TON",
-    "amount": "Enter amount for withdrawal:",
-    "invalid_amount": "Enter correct amount:",
+    "not_enough": "Minimum withdrawal is 1 USDT",
+    "amount": "Amount to withdraw:",
+    "invalid_amount": "Enter a valid amount.",
     "invalid_wallet": "Enter a valid TON wallet address.",
-    "not_enough_2": "Not enough TON on your balance.",
-    "wallet": "Enter your TON-wallet:",
-    "saved_wallet": "Your saved TON wallet:",
-    "wallet_saved_prompt": "Use this wallet for withdrawal or send a new one.",
-    "wallet_change": "Send a new TON wallet address:",
+    "not_enough_2": "Not enough USDT on your balance.",
+    "wallet": "Enter your TON wallet address:",
+    "saved_wallet": "Saved TON wallet:",
+    "wallet_saved_prompt": "Use it or send a new wallet.",
+    "wallet_change": "Send a new TON wallet:",
     "wallet_saved": "✅ TON wallet saved successfully.",
-    "sent_info": "✅ Your request for TON withdrawal has been sent successfully!\n\nYour request will be processed within 24 hours 🤝",
-    "confirmed": "✅ Your withdrawal has been approved.\n\n💫 TON has been sent to your wallet.",
-    "rejected": "❌ Your request has been rejected because you failed to follow our project's rules.",
+    "sent_info": "✅ Withdrawal request sent.\n\nWe will review it soon.",
+    "confirmed": "✅ Withdrawal approved.\n\nUSDT has been sent to your wallet on TON.",
+    "rejected": "❌ Withdrawal rejected.",
     "auto_failed": "❌ Automatic payout failed right now. The withdrawal was cancelled and funds were returned to your balance. Please try again later or contact support."
   },
   "language": {

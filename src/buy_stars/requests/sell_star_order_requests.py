@@ -13,12 +13,12 @@ async def create_sell_star_order(
     session: AsyncSession,
     user_id: int,
     stars_amount: int,
-    payout_ton: Decimal,
+    payout_usdt: Decimal,
 ) -> SellStarOrder:
     order = SellStarOrder(
         user_id=user_id,
         stars_amount=stars_amount,
-        payout_ton=payout_ton,
+        payout_ton=payout_usdt,
         status=SellStarOrderStatus.PENDING,
     )
     session.add(order)
@@ -100,10 +100,10 @@ async def expire_pending_sell_star_orders(
 async def credit_user_balance_from_sell(
     session: AsyncSession,
     user_id: int,
-    payout_ton: Decimal,
+    payout_usdt: Decimal,
 ) -> User:
     user = await session.get(User, user_id)
-    user.referral_balance += payout_ton
+    user.balance += payout_usdt
     await session.commit()
     await session.refresh(user)
     return user

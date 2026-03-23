@@ -141,7 +141,7 @@ async def retry_failed_order_callback(callback: types.CallbackQuery) -> None:
                 ref_lang = await get_lang(referrer.telegram_id)
                 await callback.bot.send_message(
                     referrer.telegram_id,
-                    f"{t(ref_lang, 'payment.referral_confirm_1')} {bonus:.4f} {t(ref_lang, 'payment.referral_confirm_2')}",
+                    f"{t(ref_lang, 'payment.referral_confirm_1')} {bonus:.2f} {t(ref_lang, 'payment.referral_confirm_2')}",
                 )
 
     await callback.answer("Повторная отправка выполнена", show_alert=True)

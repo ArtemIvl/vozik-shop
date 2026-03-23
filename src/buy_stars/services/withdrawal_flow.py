@@ -62,7 +62,7 @@ async def get_withdrawal_snapshot(
     approved_withdrawals_count, approved_withdrawals_total = approved_withdraw_stats.one()
 
     referrer = await get_user_by_id(session, user.referred_by) if user.referred_by else None
-    balance_after_request = Decimal(user.referral_balance or 0)
+    balance_after_request = Decimal(user.balance or 0)
     request_amount = Decimal(withdrawal.ton_amount or 0)
 
     return {
@@ -98,26 +98,26 @@ async def build_withdrawal_admin_message(
         f"🌐 Новая заявка на вывод #{withdrawal.id}\n\n"
         f"👤 Пользователь: {username} | <code>{user.telegram_id}</code>\n"
         f"💳 Кошелёк: <code>{withdrawal.ton_address}</code>\n"
-        f"💸 Запрошено: {_fmt_decimal(withdrawal.ton_amount)} TON\n"
-        f"🏦 Баланс до заявки: {_fmt_decimal(snapshot['balance_before_request'])} TON\n"
-        f"🏦 Баланс после заявки: {_fmt_decimal(snapshot['balance_after_request'])} TON\n\n"
+        f"💸 Запрошено: {_fmt_decimal(withdrawal.ton_amount)} USDT\n"
+        f"🏦 Баланс до заявки: {_fmt_decimal(snapshot['balance_before_request'])} USDT\n"
+        f"🏦 Баланс после заявки: {_fmt_decimal(snapshot['balance_after_request'])} USDT\n\n"
         f"🤝 Рефералка\n"
         f"Реферер: {referrer}\n"
         f"Рефералов: {user.referral_count or 0}\n"
         f"Активных рефералов: {user.active_referral_count or 0}\n"
-        f"Всего заработано по рефералке: {_fmt_decimal(user.referral_total_earned)} TON\n"
+        f"Всего заработано: {_fmt_decimal(user.total_earned)} USDT\n"
         f"Комиссия: {_fmt_decimal(Decimal(user.referral_commission or 0) * Decimal('100'), 2)}%\n\n"
         f"⭐ Sell Stars статистика\n"
         f"Оплаченных sell orders: {snapshot['sell_orders_count']}\n"
         f"Продано звёзд: {snapshot['sold_stars_total']}\n"
-        f"Начислено за sell stars: {_fmt_decimal(snapshot['sold_payout_total'])} TON\n\n"
+        f"Начислено за sell stars: {_fmt_decimal(snapshot['sold_payout_total'])} USDT\n\n"
         f"🛍 Покупки в боте\n"
         f"Оплаченных заказов: {snapshot['paid_orders_count']}\n"
         f"Куплено звёзд: {snapshot['bought_stars_total']}\n"
         f"Месяцев premium: {snapshot['bought_premium_months']}\n\n"
         f"📤 История выводов\n"
         f"Одобрено выводов: {snapshot['approved_withdrawals_count']}\n"
-        f"Выведено ранее: {_fmt_decimal(snapshot['approved_withdrawals_total'])} TON\n\n"
+        f"Выведено ранее: {_fmt_decimal(snapshot['approved_withdrawals_total'])} USDT\n\n"
         f"🕒 Дата регистрации: {registered_at}"
     )
 

@@ -18,7 +18,7 @@ from db.session import get_async_session
 from db.models.order import PaymentType, OrderType, OrderStatus, Order
 from db.models.sell_star_order import SellStarOrder, SellStarOrderStatus
 from db.models.user import Language
-from services.payment import generate_memo, calculate_star_price_in_ton, calculate_premium_price_in_ton, calculate_sell_stars_payout_in_ton
+from services.payment import generate_memo, calculate_star_price_in_ton, calculate_premium_price_in_ton, calculate_sell_stars_payout_in_usdt
 from services.heleket import create_heleket_invoice
 from config import BOT_TOKEN, TON_WALLET_ADDRESS
 from services.localization import get_lang, t
@@ -97,6 +97,11 @@ class MiniAppOrderPaymentLinkPayload(BaseModel):
 
 
 class MiniAppSellStarsOrderPayload(BaseModel):
+    init_data: str
+    stars_amount: int = Field(..., ge=50)
+
+
+class MiniAppSellStarsQuotePayload(BaseModel):
     init_data: str
     stars_amount: int = Field(..., ge=50)
 
@@ -302,12 +307,12 @@ async def miniapp_create_sell_stars_order(
     user, _ = await get_authenticated_db_user(session, payload.init_data)
     lang = user.language.value.lower()
 
-    payout_ton = await calculate_sell_stars_payout_in_ton(payload.stars_amount)
+    payout_usdt = await calculate_sell_stars_payout_in_usdt(payload.stars_amount)
     order = await create_sell_star_order(
         session=session,
         user_id=user.id,
         stars_amount=payload.stars_amount,
-        payout_ton=payout_ton,
+        payout_usdt=payout_usdt,
     )
 
     if not bot:
@@ -324,10 +329,28 @@ async def miniapp_create_sell_stars_order(
     return {
         "orderId": order.id,
         "starsAmount": payload.stars_amount,
-        "payoutTon": str(payout_ton),
+        "payoutUsdt": str(payout_usdt),
+        "payoutTon": str(payout_usdt),
         "status": order.status.value,
         "invoiceUrl": invoice_url,
         "expiresInSeconds": 1800,
+    }
+
+
+@router.post("/miniapp/sell-stars/quote")
+async def miniapp_get_sell_stars_quote(
+    payload: MiniAppSellStarsQuotePayload,
+    session: AsyncSession = Depends(get_async_session),
+):
+    user, _ = await get_authenticated_db_user(session, payload.init_data)
+    payout_usdt = await calculate_sell_stars_payout_in_usdt(payload.stars_amount)
+    return {
+        "starsAmount": payload.stars_amount,
+        "payoutUsdt": str(payout_usdt),
+        "payoutTon": str(payout_usdt),
+        "currency": "USDT",
+        "ok": True,
+        "language": user.language.value.lower(),
     }
 
 
@@ -353,6 +376,7 @@ async def miniapp_get_pending_sell_stars_orders(
             {
                 "orderId": order.id,
                 "starsAmount": order.stars_amount,
+                "payoutUsdt": str(order.payout_ton),
                 "payoutTon": str(order.payout_ton),
                 "status": order.status.value,
                 "createdAt": order.created_at.isoformat() if order.created_at else None,
@@ -656,19 +680,18 @@ async def miniapp_profile(
         "referralCommissionPercent": format_decimal(commission, places=2),
         "referralCount": user.referral_count or 0,
         "activeReferralCount": user.active_referral_count or 0,
-        "referralBalanceTon": format_decimal(user.referral_balance, places=4),
-        "referralTotalEarnedTon": format_decimal(user.referral_total_earned, places=4),
-        "referralEarnedTon": stats["referralEarnedTon"],
-        "totalEarnedTon": stats["totalEarnedTon"],
+        "balanceUsdt": format_decimal(user.balance, places=2),
+        "totalEarnedUsdt": format_decimal(user.total_earned, places=2),
+        "referralEarnedUsdt": stats["referralEarnedUsdt"],
         "totalOrdersCount": stats["totalOrdersCount"],
         "purchasedStarsTotal": stats["purchasedStarsTotal"],
         "premiumMonthsTotal": stats["premiumMonthsTotal"],
         "exchangedStarsTotal": stats["exchangedStarsTotal"],
-        "receivedTonTotal": stats["receivedTonTotal"],
+        "receivedUsdtTotal": stats["receivedUsdtTotal"],
         "scorePoints": stats["scorePoints"],
         "outperformPercent": stats["outperformPercent"],
         "savedTonWallet": user.default_ton_wallet,
-        "minWithdrawalTon": "0.5",
+        "minWithdrawalUsdt": "1",
     }
 
 
@@ -707,10 +730,10 @@ async def miniapp_withdraw(
     lang = user.language.value.lower()
 
     amount = Decimal(payload.amount)
-    if amount < Decimal("0.5"):
+    if amount < Decimal("1"):
         raise HTTPException(status_code=400, detail=t(lang, "withdrawal.not_enough"))
 
-    if amount > Decimal(user.referral_balance or 0):
+    if amount > Decimal(user.balance or 0):
         raise HTTPException(status_code=400, detail=t(lang, "withdrawal.not_enough_2"))
 
     wallet = (payload.wallet or user.default_ton_wallet or "").strip()

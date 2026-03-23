@@ -23,8 +23,8 @@ class User(Base):
 
     referral_count = Column(Integer, default=0)
     active_referral_count = Column(Integer, default=0)
-    referral_balance = Column(Numeric(18, 8), default=0)
-    referral_total_earned = Column(Numeric(18, 8), default=0)
+    balance = Column(Numeric(18, 8), default=0)
+    total_earned = Column(Numeric(18, 8), default=0)
     referral_commission = Column(Numeric(10, 2), default=0.1)
     default_ton_wallet = Column(String, nullable=True)
 

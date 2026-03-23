@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import SegmentedSwitch from "../components/common/SegmentedSwitch";
 import { cancelMiniAppOrder, createMiniAppStarsOrder, getMiniAppOrderPaymentLink, getMiniAppPendingOrders } from "../services/api";
-import { openTonkeeper } from "../services/tonkeeper";
+import { openExternalLink, openTonkeeper } from "../services/tonkeeper";
 import OverlayNotice from "../components/common/OverlayNotice";
 import OrderDetailsModal from "../components/common/OrderDetailsModal";
 import LoadingPulse from "../components/common/LoadingPulse";
@@ -13,7 +13,7 @@ function CountdownText({ seconds, prefix }) {
   return <p className="mt-1 text-xs text-star">{prefix}: {formatted}</p>;
 }
 
-export default function BuyStarsPage({ initData, tgUser, sendData, onOrdersUpdated, t }) {
+export default function BuyStarsPage({ initData, tgUser, sendData, isActive, onOrdersUpdated, t }) {
   const [recipientMode, setRecipientMode] = useState("self");
   const [username, setUsername] = useState("");
   const [starsAmount, setStarsAmount] = useState("50");
@@ -26,6 +26,7 @@ export default function BuyStarsPage({ initData, tgUser, sendData, onOrdersUpdat
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [confirmCancelOrder, setConfirmCancelOrder] = useState(null);
   const [watchedOrderIds, setWatchedOrderIds] = useState([]);
+  const [loadedOnce, setLoadedOnce] = useState(false);
 
   const selfUsername = tgUser?.username || "";
 
@@ -36,10 +37,12 @@ export default function BuyStarsPage({ initData, tgUser, sendData, onOrdersUpdat
 
   const canSubmit = Number(starsAmount) >= 50 && !!targetUsername && !loading;
 
-  const loadPendingOrders = async () => {
+  const loadPendingOrders = async ({ silent = false } = {}) => {
     if (!initData) return;
     try {
-      setPendingLoading(true);
+      if (!silent) {
+        setPendingLoading(true);
+      }
       const response = await getMiniAppPendingOrders({
         init_data: initData,
         order_type: "stars"
@@ -59,25 +62,29 @@ export default function BuyStarsPage({ initData, tgUser, sendData, onOrdersUpdat
         }
         return current.filter((orderId) => pendingIds.has(orderId));
       });
+      setLoadedOnce(true);
       onOrdersUpdated?.();
     } catch {
       setPendingOrders([]);
     } finally {
-      setPendingLoading(false);
+      if (!silent) {
+        setPendingLoading(false);
+      }
     }
   };
 
   useEffect(() => {
+    if (!initData || loadedOnce) return;
     loadPendingOrders();
-  }, [initData]);
+  }, [initData, loadedOnce]);
 
   useEffect(() => {
-    if (watchedOrderIds.length === 0 || !initData) return undefined;
+    if (!isActive || watchedOrderIds.length === 0 || !initData) return undefined;
     const id = window.setInterval(() => {
-      loadPendingOrders();
+      loadPendingOrders({ silent: true });
     }, 5000);
     return () => window.clearInterval(id);
-  }, [initData, watchedOrderIds]);
+  }, [initData, isActive, watchedOrderIds]);
 
   const handleCreateOrder = async (event) => {
     event.preventDefault();
@@ -155,7 +162,7 @@ export default function BuyStarsPage({ initData, tgUser, sendData, onOrdersUpdat
         order_id: order.orderId
       });
       if (response.invoiceUrl) {
-        window.open(response.invoiceUrl, "_blank", "noopener,noreferrer");
+        openExternalLink(response.invoiceUrl);
       }
     } catch (requestError) {
       setWatchedOrderIds((current) => current.filter((item) => item !== order.orderId));
@@ -229,7 +236,7 @@ export default function BuyStarsPage({ initData, tgUser, sendData, onOrdersUpdat
               step="1"
               value={starsAmount}
               onChange={(event) => setStarsAmount(event.target.value)}
-              className="w-full rounded-xl border border-white/15 bg-tg-surface-soft px-3 py-2 text-tg-text outline-none focus:border-star"
+              className="h-10 w-full appearance-none rounded-xl border border-white/15 bg-tg-surface-soft px-3 text-tg-text outline-none focus:border-star"
             />
           </div>
 
@@ -291,7 +298,7 @@ export default function BuyStarsPage({ initData, tgUser, sendData, onOrdersUpdat
                   #{order.orderId} • {order.starsAmount} {t.stars} • @{order.toUsername}
                 </p>
                 <p className="mt-1 text-xs text-tg-muted">
-                  {order.paymentType} • {order.priceTon ? `${order.priceTon} TON` : `${order.priceUsdt} USD`} • {order.status}
+                  {order.paymentType} • {order.priceTon ? `${order.priceTon} TON` : `${order.priceUsdt} USDT`} • {order.status}
                 </p>
                 <CountdownText seconds={order.expiresInSeconds} prefix={t.expiresIn} />
               </button>

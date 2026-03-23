@@ -323,8 +323,8 @@ async def remove_user_admin(message: types.Message, state: FSMContext) -> None:
 
 async def generate_detailed_user_text(user: User) -> tuple[str, types.InlineKeyboardMarkup]:
     # withdrawals = await get_completed_user_withdrawals(session, user.id)
-    ref_balance_str = f"{user.referral_balance:.4f}" if user.referral_balance > 0 else "0.0"
-    ref_total_earned_str = f"{user.referral_total_earned:.4f}" if user.referral_total_earned > 0 else "0.0"    
+    ref_balance_str = f"{user.balance:.2f}" if user.balance > 0 else "0.00"
+    ref_total_earned_str = f"{user.total_earned:.2f}" if user.total_earned > 0 else "0.00"    
    
     text = (
         f"<b>Пользователь:</b>\n\n"

@@ -56,7 +56,7 @@ async def start_withdraw(callback: CallbackQuery, state: FSMContext):
             await callback.answer(t(lang, 'withdrawal.not_found'), show_alert=True)
             return
 
-        if user.referral_balance < Decimal("0.5"):
+        if user.balance < Decimal("1"):
             await callback.answer(t(lang, 'withdrawal.not_enough'), show_alert=True)
             return
 
@@ -83,7 +83,7 @@ async def ask_wallet(message: Message, state: FSMContext):
         await message.answer(t(lang, 'withdrawal.invalid_amount'))
         return
 
-    if amount < Decimal("0.5"):
+    if amount < Decimal("1"):
         await message.answer(t(lang, 'withdrawal.not_enough'))
         return
 
@@ -93,7 +93,7 @@ async def ask_wallet(message: Message, state: FSMContext):
             await message.answer(t(lang, 'withdrawal.not_found'))
             await state.clear()
             return
-        if amount > user.referral_balance:
+        if amount > user.balance:
             await message.answer(t(lang, 'withdrawal.not_enough_2'))
             return
         saved_wallet = user.default_ton_wallet
