@@ -31,7 +31,9 @@ async def get_sell_star_order_by_id(
     session: AsyncSession,
     order_id: int,
 ) -> SellStarOrder | None:
-    result = await session.execute(select(SellStarOrder).where(SellStarOrder.id == order_id))
+    result = await session.execute(
+        select(SellStarOrder).where(SellStarOrder.id == order_id)
+    )
     return result.scalar_one_or_none()
 
 

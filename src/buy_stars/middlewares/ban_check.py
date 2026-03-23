@@ -35,5 +35,5 @@ class BanCheckMiddleware(BaseMiddleware):
                 )
                 await event.bot.send_message(chat_id, text)
                 return
-            
+
         return await handler(event, data)

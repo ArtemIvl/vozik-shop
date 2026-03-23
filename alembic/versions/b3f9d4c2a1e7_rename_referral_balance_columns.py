@@ -5,10 +5,10 @@ Revises: 9f2f7b7c1f0a
 Create Date: 2026-03-23 18:10:00.000000
 
 """
+
 from typing import Sequence, Union
 
 from alembic import op
-
 
 # revision identifiers, used by Alembic.
 revision: str = "b3f9d4c2a1e7"

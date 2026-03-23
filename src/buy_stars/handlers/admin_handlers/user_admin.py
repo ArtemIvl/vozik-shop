@@ -4,6 +4,7 @@ from aiogram import F, Router, types
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from db.models.user import User
+
 # from db.models.withdrawal import WithdrawalStatus
 from db.session import SessionLocal
 from keyboards.admin_keyboards import back_to_users_keyboard, manage_users_keyboard
@@ -21,6 +22,7 @@ from requests.user_requests import (
 user_admin_router = Router()
 
 kyiv_tz = timezone("Europe/Kyiv")
+
 
 class AdminActions(StatesGroup):
     view_user = State()
@@ -105,7 +107,7 @@ async def view_user_by_id(message: types.Message, state: FSMContext) -> None:
                 f"У пользователя @{user.username} сейчас установлена комиссия <b>{percent}%</b>.\n"
                 "На какую её поменять? (от 0 до 1)",
                 reply_markup=back_to_users_keyboard(),
-                parse_mode="HTML"
+                parse_mode="HTML",
             )
             await state.update_data(last_bot_message_id=sent.message_id)
             await state.set_state(AdminActions.set_commission_value)
@@ -117,7 +119,9 @@ async def view_user_by_id(message: types.Message, state: FSMContext) -> None:
             await state.update_data(last_bot_message_id=sent.message_id)
 
 
-@user_admin_router.message(AdminActions.set_commission_value, F.text.regexp(r"^\d+(\.\d+)?$"))
+@user_admin_router.message(
+    AdminActions.set_commission_value, F.text.regexp(r"^\d+(\.\d+)?$")
+)
 async def set_commission(message: types.Message, state: FSMContext) -> None:
     data = await state.get_data()
     last_msg_id = data.get("last_bot_message_id")
@@ -138,11 +142,15 @@ async def set_commission(message: types.Message, state: FSMContext) -> None:
         user = await get_user_by_telegram_id(session, telegram_id)
         if user:
             await change_referral_commission(session, user, Decimal(new_value))
-            await message.answer(f"✅ Комиссия для пользователя @{user.username} успешно изменена на {new_value * 100}%.", reply_markup=back_to_users_keyboard())
+            await message.answer(
+                f"✅ Комиссия для пользователя @{user.username} успешно изменена на {new_value * 100}%.",
+                reply_markup=back_to_users_keyboard(),
+            )
         else:
             await message.answer("Пользователь не найден.")
 
     await state.clear()
+
 
 @user_admin_router.callback_query(F.data == "ban_user")
 async def ban_user_callback(callback: types.CallbackQuery, state: FSMContext) -> None:
@@ -321,11 +329,15 @@ async def remove_user_admin(message: types.Message, state: FSMContext) -> None:
             await state.update_data(last_bot_message_id=sent.message_id)
 
 
-async def generate_detailed_user_text(user: User) -> tuple[str, types.InlineKeyboardMarkup]:
+async def generate_detailed_user_text(
+    user: User,
+) -> tuple[str, types.InlineKeyboardMarkup]:
     # withdrawals = await get_completed_user_withdrawals(session, user.id)
     ref_balance_str = f"{user.balance:.2f}" if user.balance > 0 else "0.00"
-    ref_total_earned_str = f"{user.total_earned:.2f}" if user.total_earned > 0 else "0.00"    
-   
+    ref_total_earned_str = (
+        f"{user.total_earned:.2f}" if user.total_earned > 0 else "0.00"
+    )
+
     text = (
         f"<b>Пользователь:</b>\n\n"
         f"ID: {user.telegram_id}\n"

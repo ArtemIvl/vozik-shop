@@ -1,5 +1,6 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
+
 def time_choice_keyboard() -> InlineKeyboardMarkup:
     inline_keyboard = [
         [InlineKeyboardButton(text="Сейчас", callback_data="send_now")],

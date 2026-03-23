@@ -5,6 +5,7 @@ from db.session import SessionLocal
 
 stats_admin_router = Router()
 
+
 @stats_admin_router.callback_query(F.data == "bot_stats")
 async def bot_stats_callback(callback: types.CallbackQuery) -> None:
     async with SessionLocal() as session:
@@ -47,4 +48,6 @@ async def bot_stats_callback(callback: types.CallbackQuery) -> None:
         f"Potential inventory profit: <b>{stats['inventory_expected_profit_usdt']} USDT</b></blockquote>"
     )
 
-    await callback.message.edit_text(text, parse_mode="HTML", reply_markup=admin_back_keyboard())
+    await callback.message.edit_text(
+        text, parse_mode="HTML", reply_markup=admin_back_keyboard()
+    )

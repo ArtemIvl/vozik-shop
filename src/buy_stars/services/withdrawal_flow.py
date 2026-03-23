@@ -59,14 +59,20 @@ async def get_withdrawal_snapshot(
             Withdrawal.status == WithdrawalStatus.APPROVED,
         )
     )
-    approved_withdrawals_count, approved_withdrawals_total = approved_withdraw_stats.one()
+    approved_withdrawals_count, approved_withdrawals_total = (
+        approved_withdraw_stats.one()
+    )
 
-    referrer = await get_user_by_id(session, user.referred_by) if user.referred_by else None
+    referrer = (
+        await get_user_by_id(session, user.referred_by) if user.referred_by else None
+    )
     balance_after_request = Decimal(user.balance or 0)
     request_amount = Decimal(withdrawal.ton_amount or 0)
 
     return {
-        "referrer_username": referrer.username if referrer and referrer.username else None,
+        "referrer_username": (
+            referrer.username if referrer and referrer.username else None
+        ),
         "paid_orders_count": paid_orders_count or 0,
         "bought_stars_total": bought_stars_total or 0,
         "bought_premium_months": bought_premium_months or 0,
@@ -87,7 +93,9 @@ async def build_withdrawal_admin_message(
 ) -> str:
     snapshot = await get_withdrawal_snapshot(session, user, withdrawal)
     username = f"@{user.username}" if user.username else "без username"
-    referrer = f"@{snapshot['referrer_username']}" if snapshot["referrer_username"] else "нет"
+    referrer = (
+        f"@{snapshot['referrer_username']}" if snapshot["referrer_username"] else "нет"
+    )
     registered_at = (
         user.reg_date.strftime("%d.%m.%Y %H:%M")
         if isinstance(user.reg_date, datetime)

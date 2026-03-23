@@ -20,12 +20,18 @@ class SellStarOrder(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     stars_amount = Column(Integer, nullable=False)
     payout_ton = Column(Numeric(18, 8), nullable=False)
-    status = Column(Enum(SellStarOrderStatus), default=SellStarOrderStatus.PENDING, nullable=False)
+    status = Column(
+        Enum(SellStarOrderStatus), default=SellStarOrderStatus.PENDING, nullable=False
+    )
 
     telegram_payment_charge_id = Column(String, nullable=True, unique=True)
     provider_payment_charge_id = Column(String, nullable=True)
 
-    created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
     paid_at = Column(DateTime(timezone=True), nullable=True)
 
     user = relationship("User", back_populates="sell_star_orders")

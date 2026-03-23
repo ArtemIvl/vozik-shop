@@ -17,8 +17,19 @@ PREMIUM_MARKUP = Decimal("1.05")
 TELEGRAM_STARS_WITHDRAW_FEE = Decimal("0.15")
 LOCK_PERIOD_DAYS = 21
 
-async def create_order(session: AsyncSession, user_id: int, to_username: str, stars: int | None, premium_months: int | None, price_ton: Decimal | None,
-                       price_usdt: Decimal | None, memo: str, payment_type: PaymentType, order_type: OrderType) -> Order:
+
+async def create_order(
+    session: AsyncSession,
+    user_id: int,
+    to_username: str,
+    stars: int | None,
+    premium_months: int | None,
+    price_ton: Decimal | None,
+    price_usdt: Decimal | None,
+    memo: str,
+    payment_type: PaymentType,
+    order_type: OrderType,
+) -> Order:
     order = Order(
         user_id=user_id,
         to_username=to_username,
@@ -29,11 +40,12 @@ async def create_order(session: AsyncSession, user_id: int, to_username: str, st
         memo=memo,
         status=OrderStatus.PENDING,
         payment_type=payment_type,
-        order_type=order_type
+        order_type=order_type,
     )
     session.add(order)
     await session.commit()
     return order
+
 
 async def get_pending_orders(session: AsyncSession) -> list[Order]:
     result = await session.execute(
@@ -56,27 +68,21 @@ async def get_failed_orders(session: AsyncSession) -> list[Order]:
 
 async def mark_order_paid(session: AsyncSession, order_id: int) -> None:
     await session.execute(
-        update(Order)
-        .where(Order.id == order_id)
-        .values(status=OrderStatus.PAID)
+        update(Order).where(Order.id == order_id).values(status=OrderStatus.PAID)
     )
     await session.commit()
 
 
 async def mark_order_failed(session: AsyncSession, order_id: int) -> None:
     await session.execute(
-        update(Order)
-        .where(Order.id == order_id)
-        .values(status=OrderStatus.FAILED)
+        update(Order).where(Order.id == order_id).values(status=OrderStatus.FAILED)
     )
     await session.commit()
 
 
 async def mark_order_cancelled(session: AsyncSession, order_id: int) -> None:
     await session.execute(
-        update(Order)
-        .where(Order.id == order_id)
-        .values(status=OrderStatus.CANCELLED)
+        update(Order).where(Order.id == order_id).values(status=OrderStatus.CANCELLED)
     )
     await session.commit()
 
@@ -107,10 +113,13 @@ async def get_order_by_id(session: AsyncSession, order_id: int) -> Order | None:
     order = result.scalar_one_or_none()
     return order
 
+
 async def get_bot_statistics(session: AsyncSession) -> dict:
     ton_price_usd = await get_ton_price_usd()
 
-    orders_result = await session.execute(select(Order).where(Order.status == OrderStatus.PAID))
+    orders_result = await session.execute(
+        select(Order).where(Order.status == OrderStatus.PAID)
+    )
     orders = orders_result.scalars().all()
 
     sell_orders_result = await session.execute(
@@ -118,7 +127,9 @@ async def get_bot_statistics(session: AsyncSession) -> dict:
     )
     sell_orders = sell_orders_result.scalars().all()
 
-    user_balance_result = await session.execute(select(func.coalesce(func.sum(User.balance), 0)))
+    user_balance_result = await session.execute(
+        select(func.coalesce(func.sum(User.balance), 0))
+    )
     total_user_balances = Decimal(user_balance_result.scalar() or 0)
 
     pending_withdrawals_result = await session.execute(
@@ -128,7 +139,9 @@ async def get_bot_statistics(session: AsyncSession) -> dict:
     )
     pending_withdrawals_total = Decimal(pending_withdrawals_result.scalar() or 0)
 
-    referral_result = await session.execute(select(func.coalesce(func.sum(User.total_earned), 0)))
+    referral_result = await session.execute(
+        select(func.coalesce(func.sum(User.total_earned), 0))
+    )
     total_referral_paid = Decimal(referral_result.scalar() or 0)
 
     total_paid_orders = len(orders)
@@ -188,18 +201,36 @@ async def get_bot_statistics(session: AsyncSession) -> dict:
         else:
             unlocked_stars_total += stars_amount
 
-    total_withdrawable_after_fee_stars = Decimal(total_stars_bought_from_users) * (Decimal("1") - TELEGRAM_STARS_WITHDRAW_FEE)
-    locked_withdrawable_after_fee_stars = Decimal(locked_stars_total) * (Decimal("1") - TELEGRAM_STARS_WITHDRAW_FEE)
-    unlocked_withdrawable_after_fee_stars = Decimal(unlocked_stars_total) * (Decimal("1") - TELEGRAM_STARS_WITHDRAW_FEE)
+    total_withdrawable_after_fee_stars = Decimal(total_stars_bought_from_users) * (
+        Decimal("1") - TELEGRAM_STARS_WITHDRAW_FEE
+    )
+    locked_withdrawable_after_fee_stars = Decimal(locked_stars_total) * (
+        Decimal("1") - TELEGRAM_STARS_WITHDRAW_FEE
+    )
+    unlocked_withdrawable_after_fee_stars = Decimal(unlocked_stars_total) * (
+        Decimal("1") - TELEGRAM_STARS_WITHDRAW_FEE
+    )
 
-    gross_inventory_value_usdt = Decimal(total_stars_bought_from_users) * USD_PRICE_PER_STAR
-    net_inventory_value_after_fee_usdt = total_withdrawable_after_fee_stars * USD_PRICE_PER_STAR
-    locked_inventory_value_after_fee_usdt = locked_withdrawable_after_fee_stars * USD_PRICE_PER_STAR
-    unlocked_inventory_value_after_fee_usdt = unlocked_withdrawable_after_fee_stars * USD_PRICE_PER_STAR
-    inventory_expected_profit_usdt = net_inventory_value_after_fee_usdt - total_paid_to_users_usdt
+    gross_inventory_value_usdt = (
+        Decimal(total_stars_bought_from_users) * USD_PRICE_PER_STAR
+    )
+    net_inventory_value_after_fee_usdt = (
+        total_withdrawable_after_fee_stars * USD_PRICE_PER_STAR
+    )
+    locked_inventory_value_after_fee_usdt = (
+        locked_withdrawable_after_fee_stars * USD_PRICE_PER_STAR
+    )
+    unlocked_inventory_value_after_fee_usdt = (
+        unlocked_withdrawable_after_fee_stars * USD_PRICE_PER_STAR
+    )
+    inventory_expected_profit_usdt = (
+        net_inventory_value_after_fee_usdt - total_paid_to_users_usdt
+    )
 
     realized_profit_before_referrals_usdt = stars_sales_profit_usd + premium_profit_usd
-    realized_profit_after_referrals_usdt = realized_profit_before_referrals_usdt - total_referral_paid
+    realized_profit_after_referrals_usdt = (
+        realized_profit_before_referrals_usdt - total_referral_paid
+    )
     total_user_liabilities_usdt = total_user_balances + pending_withdrawals_total
 
     return {
@@ -217,28 +248,51 @@ async def get_bot_statistics(session: AsyncSession) -> dict:
         "total_paid_to_users_usdt": total_paid_to_users_usdt.quantize(Decimal("0.01")),
         "locked_stars_total": locked_stars_total,
         "unlocked_stars_total": unlocked_stars_total,
-        "total_withdrawable_after_fee_stars": total_withdrawable_after_fee_stars.quantize(Decimal("0.01")),
-        "locked_withdrawable_after_fee_stars": locked_withdrawable_after_fee_stars.quantize(Decimal("0.01")),
-        "unlocked_withdrawable_after_fee_stars": unlocked_withdrawable_after_fee_stars.quantize(Decimal("0.01")),
-        "gross_inventory_value_usdt": gross_inventory_value_usdt.quantize(Decimal("0.01")),
-        "net_inventory_value_after_fee_usdt": net_inventory_value_after_fee_usdt.quantize(Decimal("0.01")),
-        "locked_inventory_value_after_fee_usdt": locked_inventory_value_after_fee_usdt.quantize(Decimal("0.01")),
-        "unlocked_inventory_value_after_fee_usdt": unlocked_inventory_value_after_fee_usdt.quantize(Decimal("0.01")),
-        "inventory_expected_profit_usdt": inventory_expected_profit_usdt.quantize(Decimal("0.01")),
+        "total_withdrawable_after_fee_stars": total_withdrawable_after_fee_stars.quantize(
+            Decimal("0.01")
+        ),
+        "locked_withdrawable_after_fee_stars": locked_withdrawable_after_fee_stars.quantize(
+            Decimal("0.01")
+        ),
+        "unlocked_withdrawable_after_fee_stars": unlocked_withdrawable_after_fee_stars.quantize(
+            Decimal("0.01")
+        ),
+        "gross_inventory_value_usdt": gross_inventory_value_usdt.quantize(
+            Decimal("0.01")
+        ),
+        "net_inventory_value_after_fee_usdt": net_inventory_value_after_fee_usdt.quantize(
+            Decimal("0.01")
+        ),
+        "locked_inventory_value_after_fee_usdt": locked_inventory_value_after_fee_usdt.quantize(
+            Decimal("0.01")
+        ),
+        "unlocked_inventory_value_after_fee_usdt": unlocked_inventory_value_after_fee_usdt.quantize(
+            Decimal("0.01")
+        ),
+        "inventory_expected_profit_usdt": inventory_expected_profit_usdt.quantize(
+            Decimal("0.01")
+        ),
         "total_referral_paid": total_referral_paid.quantize(Decimal("0.01")),
         "total_user_balances": total_user_balances.quantize(Decimal("0.01")),
-        "pending_withdrawals_total": pending_withdrawals_total.quantize(Decimal("0.01")),
-        "total_user_liabilities_usdt": total_user_liabilities_usdt.quantize(Decimal("0.01")),
-        "realized_profit_before_referrals_usdt": realized_profit_before_referrals_usdt.quantize(Decimal("0.01")),
-        "realized_profit_after_referrals_usdt": realized_profit_after_referrals_usdt.quantize(Decimal("0.01")),
+        "pending_withdrawals_total": pending_withdrawals_total.quantize(
+            Decimal("0.01")
+        ),
+        "total_user_liabilities_usdt": total_user_liabilities_usdt.quantize(
+            Decimal("0.01")
+        ),
+        "realized_profit_before_referrals_usdt": realized_profit_before_referrals_usdt.quantize(
+            Decimal("0.01")
+        ),
+        "realized_profit_after_referrals_usdt": realized_profit_after_referrals_usdt.quantize(
+            Decimal("0.01")
+        ),
     }
 
 
 async def has_user_paid_orders(session: AsyncSession, user_id: int) -> bool:
     result = await session.execute(
-        select(exists().where(
-            Order.user_id == user_id,
-            Order.status == OrderStatus.PAID
-        ))
+        select(
+            exists().where(Order.user_id == user_id, Order.status == OrderStatus.PAID)
+        )
     )
     return result.scalar()

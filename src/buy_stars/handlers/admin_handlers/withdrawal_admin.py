@@ -1,9 +1,19 @@
 from db.session import SessionLocal
 from aiogram import F, Router, types
-from requests.withdrawal_requests import get_pending_withdrawals, get_withdrawal_by_id, approve_withdrawal, reject_withdrawal_and_refund
+from requests.withdrawal_requests import (
+    get_pending_withdrawals,
+    get_withdrawal_by_id,
+    approve_withdrawal,
+    reject_withdrawal_and_refund,
+)
 from requests.user_requests import get_user_by_id
 from aiogram.exceptions import TelegramForbiddenError
-from keyboards.admin_keyboards import pending_withdraw_keyboard, withdraw_info_keyboard, confirm_withdraw_keyboard, reject_withdraw_keyboard
+from keyboards.admin_keyboards import (
+    pending_withdraw_keyboard,
+    withdraw_info_keyboard,
+    confirm_withdraw_keyboard,
+    reject_withdraw_keyboard,
+)
 from db.models.withdrawal import WithdrawalStatus
 from services.localization import t, get_lang
 from services.ton_withdrawal import get_sender_usdt_balance, send_usdt_withdrawal
@@ -50,12 +60,13 @@ async def withdraw_info_callback(callback: types.CallbackQuery) -> None:
             reply_markup=withdraw_info_keyboard(withdrawal.id),
         )
 
+
 @withdraw_admin_router.callback_query(F.data.startswith("confirm_withdrawal_"))
 async def confirm_withdrawal_callback(callback: types.CallbackQuery) -> None:
     withdrawal_id = int(callback.data.split("_")[2])
     await callback.message.edit_text(
         "Вы уверены, что хотите подтвердить вывод?",
-        reply_markup=confirm_withdraw_keyboard(withdrawal_id)
+        reply_markup=confirm_withdraw_keyboard(withdrawal_id),
     )
 
 
@@ -75,7 +86,9 @@ async def confirm_withdrawal_callback(callback: types.CallbackQuery) -> None:
         try:
             available_balance = await get_sender_usdt_balance()
         except Exception as exc:
-            await callback.answer(f"Не удалось проверить баланс USDT: {exc}", show_alert=True)
+            await callback.answer(
+                f"Не удалось проверить баланс USDT: {exc}", show_alert=True
+            )
             return
 
         if available_balance < withdrawal.ton_amount:
@@ -85,12 +98,17 @@ async def confirm_withdrawal_callback(callback: types.CallbackQuery) -> None:
             )
             return
 
-        ok, details = await send_usdt_withdrawal(withdrawal.ton_address, withdrawal.ton_amount)
+        ok, details = await send_usdt_withdrawal(
+            withdrawal.ton_address, withdrawal.ton_amount
+        )
 
         if not ok:
-            await callback.answer(f"Не удалось отправить USDT: {details}", show_alert=True)
+            await callback.answer(
+                f"Не удалось отправить USDT: {details}", show_alert=True
+            )
             await callback.message.edit_text(
-                await build_withdrawal_admin_message(session, user, withdrawal) + f"\n\n❌ Ошибка отправки: <code>{details}</code>",
+                await build_withdrawal_admin_message(session, user, withdrawal)
+                + f"\n\n❌ Ошибка отправки: <code>{details}</code>",
                 parse_mode="HTML",
                 reply_markup=withdraw_info_keyboard(withdrawal.id),
             )
@@ -102,7 +120,7 @@ async def confirm_withdrawal_callback(callback: types.CallbackQuery) -> None:
             lang = await get_lang(user.telegram_id)
             await callback.bot.send_message(
                 chat_id=user.telegram_id,
-                text=t(lang, 'withdrawal.confirmed'),
+                text=t(lang, "withdrawal.confirmed"),
                 parse_mode="HTML",
             )
         except TelegramForbiddenError:
@@ -115,12 +133,13 @@ async def confirm_withdrawal_callback(callback: types.CallbackQuery) -> None:
             reply_markup=await pending_withdraw_keyboard(session, withdrawals, page=1),
         )
 
+
 @withdraw_admin_router.callback_query(F.data.startswith("reject_withdrawal_"))
 async def reject_withdrawal_callback(callback: types.CallbackQuery) -> None:
     withdrawal_id = int(callback.data.split("_")[2])
     await callback.message.edit_text(
         "Вы уверены, что хотите отклонить вывод?",
-        reply_markup=reject_withdraw_keyboard(withdrawal_id)
+        reply_markup=reject_withdraw_keyboard(withdrawal_id),
     )
 
 
@@ -136,7 +155,7 @@ async def reject_withdrawal_callback(callback: types.CallbackQuery) -> None:
             lang = await get_lang(user.telegram_id)
             await callback.bot.send_message(
                 chat_id=user.telegram_id,
-                text=t(lang, 'withdrawal.rejected'),
+                text=t(lang, "withdrawal.rejected"),
                 parse_mode="HTML",
             )
         except TelegramForbiddenError:

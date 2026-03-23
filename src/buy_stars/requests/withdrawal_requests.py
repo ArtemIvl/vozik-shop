@@ -51,7 +51,9 @@ async def reject_withdrawal(session: AsyncSession, withdrawal_id: int) -> None:
         raise ValueError(f"Withdrawal with id {withdrawal_id} not found.")
 
 
-async def reject_withdrawal_and_refund(session: AsyncSession, withdrawal_id: int) -> None:
+async def reject_withdrawal_and_refund(
+    session: AsyncSession, withdrawal_id: int
+) -> None:
     withdrawal = await session.get(Withdrawal, withdrawal_id)
     if not withdrawal:
         raise ValueError(f"Withdrawal with id {withdrawal_id} not found.")
@@ -64,7 +66,9 @@ async def reject_withdrawal_and_refund(session: AsyncSession, withdrawal_id: int
     await session.commit()
 
 
-async def get_withdrawal_by_id(session: AsyncSession, withdrawal_id: int) -> Withdrawal | None:
+async def get_withdrawal_by_id(
+    session: AsyncSession, withdrawal_id: int
+) -> Withdrawal | None:
     withdrawal = await session.execute(
         select(Withdrawal).where(Withdrawal.id == withdrawal_id)
     )

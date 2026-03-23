@@ -27,11 +27,15 @@ async def failed_orders_keyboard(
     nav_buttons = []
     if page > 1:
         nav_buttons.append(
-            InlineKeyboardButton(text="⬅️", callback_data=f"failed_orders_page_{page - 1}")
+            InlineKeyboardButton(
+                text="⬅️", callback_data=f"failed_orders_page_{page - 1}"
+            )
         )
     if page < pages:
         nav_buttons.append(
-            InlineKeyboardButton(text="➡️", callback_data=f"failed_orders_page_{page + 1}")
+            InlineKeyboardButton(
+                text="➡️", callback_data=f"failed_orders_page_{page + 1}"
+            )
         )
     if nav_buttons:
         inline_keyboard.append(nav_buttons)
@@ -47,7 +51,8 @@ def failed_order_info_keyboard(order_id: int) -> InlineKeyboardMarkup:
     inline_keyboard = [
         [
             InlineKeyboardButton(
-                text="🔁 Повторить отправку", callback_data=f"retry_failed_order_{order_id}"
+                text="🔁 Повторить отправку",
+                callback_data=f"retry_failed_order_{order_id}",
             )
         ],
         [

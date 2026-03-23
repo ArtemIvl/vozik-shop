@@ -14,15 +14,25 @@ from config import (
 
 
 def _ton_to_nanotons(amount_ton: Decimal) -> int:
-    return int((Decimal(amount_ton) * Decimal("1000000000")).quantize(Decimal("1"), rounding=ROUND_DOWN))
+    return int(
+        (Decimal(amount_ton) * Decimal("1000000000")).quantize(
+            Decimal("1"), rounding=ROUND_DOWN
+        )
+    )
 
 
 def _usdt_to_units(amount_usdt: Decimal) -> int:
-    return int((Decimal(amount_usdt) * Decimal("1000000")).quantize(Decimal("1"), rounding=ROUND_DOWN))
+    return int(
+        (Decimal(amount_usdt) * Decimal("1000000")).quantize(
+            Decimal("1"), rounding=ROUND_DOWN
+        )
+    )
 
 
 def _units_to_usdt(amount_units: int | str | Decimal) -> Decimal:
-    return (Decimal(str(amount_units)) / Decimal("1000000")).quantize(Decimal("0.000001"))
+    return (Decimal(str(amount_units)) / Decimal("1000000")).quantize(
+        Decimal("0.000001")
+    )
 
 
 def _parse_mnemonic_words(raw_value: str) -> list[str]:
@@ -106,7 +116,9 @@ async def _get_jetton_wallet_address(
     data = response.json()
     wallets = data.get("jetton_wallets") or data.get("balances") or []
     if not wallets:
-        raise RuntimeError("Could not derive USDT jetton wallet address from TON wallet")
+        raise RuntimeError(
+            "Could not derive USDT jetton wallet address from TON wallet"
+        )
 
     jetton_wallet = wallets[0]
     jetton_wallet_address = jetton_wallet.get("address")
@@ -154,7 +166,10 @@ async def send_ton_withdrawal(address: str, amount_ton: Decimal) -> tuple[bool, 
         derived_address = wallet.address.to_string(True, True, True)
         configured_address = Address(TON_WALLET_ADDRESS).to_string(True, True, True)
         if derived_address != configured_address:
-            return False, "Configured TON wallet address does not match TON_WALLET_MNEMONIC"
+            return (
+                False,
+                "Configured TON wallet address does not match TON_WALLET_MNEMONIC",
+            )
 
         async with httpx.AsyncClient(timeout=60.0) as client:
             seqno = await _get_wallet_seqno(client, configured_address)
@@ -197,7 +212,10 @@ async def send_usdt_withdrawal(address: str, amount_usdt: Decimal) -> tuple[bool
         derived_address = wallet.address.to_string(True, True, True)
         configured_address = Address(TON_WALLET_ADDRESS).to_string(True, True, True)
         if derived_address != configured_address:
-            return False, "Configured TON wallet address does not match TON_WALLET_MNEMONIC"
+            return (
+                False,
+                "Configured TON wallet address does not match TON_WALLET_MNEMONIC",
+            )
 
         jetton_wallet = JettonWallet()
         transfer_body = jetton_wallet.create_transfer_body(
@@ -208,10 +226,12 @@ async def send_usdt_withdrawal(address: str, amount_usdt: Decimal) -> tuple[bool
         )
 
         async with httpx.AsyncClient(timeout=60.0) as client:
-            sender_jetton_wallet_address, sender_balance_units = await _get_jetton_wallet_address(
-                client,
-                configured_address,
-                USDT_MASTER_ADDRESS.strip(),
+            sender_jetton_wallet_address, sender_balance_units = (
+                await _get_jetton_wallet_address(
+                    client,
+                    configured_address,
+                    USDT_MASTER_ADDRESS.strip(),
+                )
             )
             requested_units = _usdt_to_units(Decimal(amount_usdt))
             if sender_balance_units < requested_units:

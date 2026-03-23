@@ -10,6 +10,7 @@ from services.profile_stats import format_decimal, get_profile_stats
 
 router = Router()
 
+
 def register_profile_handlers(dp) -> None:
     dp.include_router(router)
 
@@ -18,6 +19,7 @@ def _clean_profile_label(value: str) -> str:
     if value.startswith("<b>"):
         return re.sub(r"^<b>\W*", "<b>", value, count=1)
     return re.sub(r"^\W*", "", value, count=1)
+
 
 @router.callback_query(F.data == "profile")
 async def handle_profile(callback: types.CallbackQuery, state: FSMContext) -> None:
@@ -29,7 +31,7 @@ async def handle_profile(callback: types.CallbackQuery, state: FSMContext) -> No
         user = await get_user_by_telegram_id(session, telegram_id)
 
         if not user:
-            await callback.answer(t(lang, 'profile.not_found'), show_alert=True)
+            await callback.answer(t(lang, "profile.not_found"), show_alert=True)
             return
 
         referral_link = f"https://t.me/VozikStarsBot?start={telegram_id}"
@@ -59,5 +61,10 @@ async def handle_profile(callback: types.CallbackQuery, state: FSMContext) -> No
         f"{t(lang, 'profile.info')}"
     )
 
-    await callback.message.edit_text(text, reply_markup=withdraw_keyboard(lang), parse_mode="HTML", disable_web_page_preview=True)
+    await callback.message.edit_text(
+        text,
+        reply_markup=withdraw_keyboard(lang),
+        parse_mode="HTML",
+        disable_web_page_preview=True,
+    )
     await callback.answer()

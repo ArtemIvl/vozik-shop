@@ -13,6 +13,7 @@ PREMIUM_PRICES_USD = {
     12: Decimal("29"),
 }
 
+
 def generate_memo() -> str:
     return str(random.randint(10000000, 99999999))
 
@@ -44,7 +45,9 @@ async def calculate_premium_price_in_ton(months: int) -> Decimal:
     final_usd = base_usd * Decimal("1.05")
 
     ton_usd_price = await get_ton_price_usd()
-    price_in_ton = (final_usd / ton_usd_price).quantize(Decimal("0.001"), rounding=ROUND_UP)
+    price_in_ton = (final_usd / ton_usd_price).quantize(
+        Decimal("0.001"), rounding=ROUND_UP
+    )
 
     return price_in_ton
 
