@@ -4,12 +4,18 @@ from db.models.order import Order, OrderType, PaymentType
 from requests.user_requests import get_all_admins
 
 
-async def notify_admins_order_failed(bot: Bot, session, order: Order, source: str) -> None:
+async def notify_admins_order_failed(
+    bot: Bot, session, order: Order, source: str
+) -> None:
     admins = await get_all_admins(session)
 
     order_kind = "stars" if order.order_type == OrderType.STARS else "premium"
     payment_kind = "TON" if order.payment_type == PaymentType.TON else "USDT"
-    amount = order.stars_amount if order.order_type == OrderType.STARS else order.premium_months
+    amount = (
+        order.stars_amount
+        if order.order_type == OrderType.STARS
+        else order.premium_months
+    )
 
     text = (
         "❗️Неудачная транзакция Fragment\n"

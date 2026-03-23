@@ -10,7 +10,12 @@ from typing import Literal
 from requests.user_requests import get_user_by_telegram_id, set_user_default_ton_wallet
 from requests.order_requests import has_user_paid_orders, create_order
 from requests.user_requests import set_user_language
-from requests.sell_star_order_requests import create_sell_star_order, get_sell_star_order_by_id, cancel_sell_star_order, expire_pending_sell_star_orders
+from requests.sell_star_order_requests import (
+    create_sell_star_order,
+    get_sell_star_order_by_id,
+    cancel_sell_star_order,
+    expire_pending_sell_star_orders,
+)
 from requests.withdrawal_requests import create_withdrawal_request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -18,11 +23,21 @@ from db.session import get_async_session
 from db.models.order import PaymentType, OrderType, OrderStatus, Order
 from db.models.sell_star_order import SellStarOrder, SellStarOrderStatus
 from db.models.user import Language
-from services.payment import generate_memo, calculate_star_price_in_ton, calculate_premium_price_in_ton, calculate_sell_stars_payout_in_ton
+from services.payment import (
+    generate_memo,
+    calculate_star_price_in_ton,
+    calculate_premium_price_in_ton,
+    calculate_sell_stars_payout_in_usdt,
+)
 from services.heleket import create_heleket_invoice
 from config import BOT_TOKEN, TON_WALLET_ADDRESS
 from services.localization import get_lang, t
-from services.profile_stats import format_decimal, get_profile_stats, get_remaining_seconds, is_expired
+from services.profile_stats import (
+    format_decimal,
+    get_profile_stats,
+    get_remaining_seconds,
+    is_expired,
+)
 from services.ton_wallets import normalize_ton_wallet
 from services.withdrawal_flow import notify_admins_about_withdrawal
 from aiogram import Bot
@@ -101,6 +116,11 @@ class MiniAppSellStarsOrderPayload(BaseModel):
     stars_amount: int = Field(..., ge=50)
 
 
+class MiniAppSellStarsQuotePayload(BaseModel):
+    init_data: str
+    stars_amount: int = Field(..., ge=50)
+
+
 class MiniAppSellStarsInvoicePayload(BaseModel):
     init_data: str
     order_id: int
@@ -127,7 +147,9 @@ def verify_telegram_init_data(init_data: str) -> dict:
     ).hexdigest()
 
     if not hmac.compare_digest(calculated_hash, received_hash):
-        raise HTTPException(status_code=401, detail="Telegram init data verification failed")
+        raise HTTPException(
+            status_code=401, detail="Telegram init data verification failed"
+        )
 
     user_raw = parsed.get("user")
     if not user_raw:
@@ -163,6 +185,7 @@ def build_tonkeeper_links(price_ton: Decimal, memo: str) -> dict:
         "tonkeeperWebUrl": web_link,
     }
 
+
 @router.get("/is_registered")
 async def is_registered(
     telegram_id: int = Query(...),
@@ -177,14 +200,14 @@ async def is_registered(
         referrer = await get_user_by_telegram_id(session, referrer_telegram_id)
         if referrer and user.referred_by == referrer.id:
             is_referrer = True
-    
+
     # isCompleted — оба условия выполнены
     is_completed = is_member and is_referrer
 
     return {
         "isMember": is_member,
         "isReferrer": is_referrer,
-        "isCompleted": is_completed
+        "isCompleted": is_completed,
     }
 
 
@@ -205,11 +228,7 @@ async def is_registered_and_paid(
     # isCompleted — все 3 условия выполнены
     is_completed = is_member and paid
 
-    return {
-        "isMember": is_member,
-        "isPaid": paid,
-        "isCompleted": is_completed
-    }
+    return {"isMember": is_member, "isPaid": paid, "isCompleted": is_completed}
 
 
 @router.post("/miniapp/stars/order")
@@ -228,20 +247,22 @@ async def miniapp_create_stars_order(
         raise HTTPException(status_code=400, detail="Target username is required")
 
     memo = generate_memo()
-    payment_type = PaymentType.TON if payload.payment_method == "TON" else PaymentType.USDT
+    payment_type = (
+        PaymentType.TON if payload.payment_method == "TON" else PaymentType.USDT
+    )
 
     if payment_type == PaymentType.TON:
         try:
             price = await calculate_star_price_in_ton(payload.stars_amount)
         except Exception as e:
             print(f"[miniapp_create_stars_order] TON price fallback used: {e}")
-            price = (Decimal(payload.stars_amount) * Decimal("0.015") * Decimal("1.14")).quantize(
-                Decimal("0.001"), rounding=ROUND_UP
-            )
+            price = (
+                Decimal(payload.stars_amount) * Decimal("0.015") * Decimal("1.14")
+            ).quantize(Decimal("0.001"), rounding=ROUND_UP)
     else:
-        price = (Decimal(payload.stars_amount) * Decimal("0.015") * Decimal("1.14")).quantize(
-            Decimal("0.01"), rounding=ROUND_UP
-        )
+        price = (
+            Decimal(payload.stars_amount) * Decimal("0.015") * Decimal("1.14")
+        ).quantize(Decimal("0.01"), rounding=ROUND_UP)
 
     try:
         order = await create_order(
@@ -302,12 +323,12 @@ async def miniapp_create_sell_stars_order(
     user, _ = await get_authenticated_db_user(session, payload.init_data)
     lang = user.language.value.lower()
 
-    payout_ton = await calculate_sell_stars_payout_in_ton(payload.stars_amount)
+    payout_usdt = await calculate_sell_stars_payout_in_usdt(payload.stars_amount)
     order = await create_sell_star_order(
         session=session,
         user_id=user.id,
         stars_amount=payload.stars_amount,
-        payout_ton=payout_ton,
+        payout_usdt=payout_usdt,
     )
 
     if not bot:
@@ -318,16 +339,38 @@ async def miniapp_create_sell_stars_order(
         description=t(lang, "sell_stars.invoice_description"),
         payload=f"sellstars:{order.id}",
         currency="XTR",
-        prices=[LabeledPrice(label=t(lang, "sell_stars.invoice_label"), amount=payload.stars_amount)],
+        prices=[
+            LabeledPrice(
+                label=t(lang, "sell_stars.invoice_label"), amount=payload.stars_amount
+            )
+        ],
     )
 
     return {
         "orderId": order.id,
         "starsAmount": payload.stars_amount,
-        "payoutTon": str(payout_ton),
+        "payoutUsdt": str(payout_usdt),
+        "payoutTon": str(payout_usdt),
         "status": order.status.value,
         "invoiceUrl": invoice_url,
         "expiresInSeconds": 1800,
+    }
+
+
+@router.post("/miniapp/sell-stars/quote")
+async def miniapp_get_sell_stars_quote(
+    payload: MiniAppSellStarsQuotePayload,
+    session: AsyncSession = Depends(get_async_session),
+):
+    user, _ = await get_authenticated_db_user(session, payload.init_data)
+    payout_usdt = await calculate_sell_stars_payout_in_usdt(payload.stars_amount)
+    return {
+        "starsAmount": payload.stars_amount,
+        "payoutUsdt": str(payout_usdt),
+        "payoutTon": str(payout_usdt),
+        "currency": "USDT",
+        "ok": True,
+        "language": user.language.value.lower(),
     }
 
 
@@ -353,6 +396,7 @@ async def miniapp_get_pending_sell_stars_orders(
             {
                 "orderId": order.id,
                 "starsAmount": order.stars_amount,
+                "payoutUsdt": str(order.payout_ton),
                 "payoutTon": str(order.payout_ton),
                 "status": order.status.value,
                 "createdAt": order.created_at.isoformat() if order.created_at else None,
@@ -373,11 +417,17 @@ async def miniapp_get_sell_stars_invoice_link(
 
     order = await get_sell_star_order_by_id(session, payload.order_id)
     if not order or order.user_id != user.id:
-        raise HTTPException(status_code=404, detail=t(lang, "sell_stars.order_not_found"))
+        raise HTTPException(
+            status_code=404, detail=t(lang, "sell_stars.order_not_found")
+        )
     if order.status != SellStarOrderStatus.PENDING:
-        raise HTTPException(status_code=400, detail=t(lang, "sell_stars.order_not_pending"))
+        raise HTTPException(
+            status_code=400, detail=t(lang, "sell_stars.order_not_pending")
+        )
     if is_expired(order.created_at):
-        raise HTTPException(status_code=400, detail=t(lang, "sell_stars.order_not_pending"))
+        raise HTTPException(
+            status_code=400, detail=t(lang, "sell_stars.order_not_pending")
+        )
 
     if not bot:
         raise HTTPException(status_code=500, detail="BOT_TOKEN is not configured")
@@ -387,7 +437,11 @@ async def miniapp_get_sell_stars_invoice_link(
         description=t(lang, "sell_stars.invoice_description"),
         payload=f"sellstars:{order.id}",
         currency="XTR",
-        prices=[LabeledPrice(label=t(lang, "sell_stars.invoice_label"), amount=order.stars_amount)],
+        prices=[
+            LabeledPrice(
+                label=t(lang, "sell_stars.invoice_label"), amount=order.stars_amount
+            )
+        ],
     )
     return {"orderId": order.id, "invoiceUrl": invoice_url}
 
@@ -428,7 +482,9 @@ async def miniapp_create_premium_order(
         raise HTTPException(status_code=400, detail="Target username is required")
 
     memo = generate_memo()
-    payment_type = PaymentType.TON if payload.payment_method == "TON" else PaymentType.USDT
+    payment_type = (
+        PaymentType.TON if payload.payment_method == "TON" else PaymentType.USDT
+    )
 
     if payment_type == PaymentType.TON:
         try:
@@ -436,10 +492,14 @@ async def miniapp_create_premium_order(
         except Exception as e:
             print(f"[miniapp_create_premium_order] TON price fallback used: {e}")
             base_price = PREMIUM_PRICES_USD[payload.months]
-            price = (base_price * Decimal("1.05")).quantize(Decimal("0.001"), rounding=ROUND_UP)
+            price = (base_price * Decimal("1.05")).quantize(
+                Decimal("0.001"), rounding=ROUND_UP
+            )
     else:
         base_price = PREMIUM_PRICES_USD[payload.months]
-        price = (base_price * Decimal("1.05")).quantize(Decimal("0.01"), rounding=ROUND_UP)
+        price = (base_price * Decimal("1.05")).quantize(
+            Decimal("0.01"), rounding=ROUND_UP
+        )
 
     try:
         order = await create_order(
@@ -528,9 +588,13 @@ async def miniapp_get_pending_orders(
             "starsAmount": order.stars_amount,
             "months": order.premium_months,
             "priceTon": str(order.price_ton) if order.price_ton is not None else None,
-            "priceUsdt": str(order.price_usdt) if order.price_usdt is not None else None,
+            "priceUsdt": (
+                str(order.price_usdt) if order.price_usdt is not None else None
+            ),
             "memo": order.memo,
-            "walletAddress": TON_WALLET_ADDRESS if order.payment_type == PaymentType.TON else None,
+            "walletAddress": (
+                TON_WALLET_ADDRESS if order.payment_type == PaymentType.TON else None
+            ),
             "createdAt": order.created_at.isoformat() if order.created_at else None,
             "expiresInSeconds": remaining_seconds,
         }
@@ -556,7 +620,11 @@ async def miniapp_confirm_payment(
         raise HTTPException(status_code=404, detail="Order not found")
 
     lang = await get_lang(user.telegram_id)
-    key = "buy_tg_premium.confirm_payment" if order.order_type == OrderType.PREMIUM else "buy_stars.confirm_payment"
+    key = (
+        "buy_tg_premium.confirm_payment"
+        if order.order_type == OrderType.PREMIUM
+        else "buy_stars.confirm_payment"
+    )
     return {"ok": True, "message": t(lang, key)}
 
 
@@ -612,7 +680,9 @@ async def miniapp_get_order_payment_link(
     if order.price_usdt is None:
         raise HTTPException(status_code=400, detail="Order cannot be paid")
 
-    invoice_url = await create_heleket_invoice(amount_usd=order.price_usdt, order_id=order.id)
+    invoice_url = await create_heleket_invoice(
+        amount_usd=order.price_usdt, order_id=order.id
+    )
     if not invoice_url:
         raise HTTPException(status_code=502, detail="Unable to create payment link")
 
@@ -656,19 +726,18 @@ async def miniapp_profile(
         "referralCommissionPercent": format_decimal(commission, places=2),
         "referralCount": user.referral_count or 0,
         "activeReferralCount": user.active_referral_count or 0,
-        "referralBalanceTon": format_decimal(user.referral_balance, places=4),
-        "referralTotalEarnedTon": format_decimal(user.referral_total_earned, places=4),
-        "referralEarnedTon": stats["referralEarnedTon"],
-        "totalEarnedTon": stats["totalEarnedTon"],
+        "balanceUsdt": format_decimal(user.balance, places=2),
+        "totalEarnedUsdt": format_decimal(user.total_earned, places=2),
+        "referralEarnedUsdt": stats["referralEarnedUsdt"],
         "totalOrdersCount": stats["totalOrdersCount"],
         "purchasedStarsTotal": stats["purchasedStarsTotal"],
         "premiumMonthsTotal": stats["premiumMonthsTotal"],
         "exchangedStarsTotal": stats["exchangedStarsTotal"],
-        "receivedTonTotal": stats["receivedTonTotal"],
+        "receivedUsdtTotal": stats["receivedUsdtTotal"],
         "scorePoints": stats["scorePoints"],
         "outperformPercent": stats["outperformPercent"],
         "savedTonWallet": user.default_ton_wallet,
-        "minWithdrawalTon": "0.5",
+        "minWithdrawalUsdt": "1",
     }
 
 
@@ -686,7 +755,9 @@ async def miniapp_set_wallet(
     try:
         wallet = normalize_ton_wallet(wallet)
     except ValueError:
-        raise HTTPException(status_code=400, detail=t(lang, "withdrawal.invalid_wallet"))
+        raise HTTPException(
+            status_code=400, detail=t(lang, "withdrawal.invalid_wallet")
+        )
     except RuntimeError as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
@@ -707,10 +778,10 @@ async def miniapp_withdraw(
     lang = user.language.value.lower()
 
     amount = Decimal(payload.amount)
-    if amount < Decimal("0.5"):
+    if amount < Decimal("1"):
         raise HTTPException(status_code=400, detail=t(lang, "withdrawal.not_enough"))
 
-    if amount > Decimal(user.referral_balance or 0):
+    if amount > Decimal(user.balance or 0):
         raise HTTPException(status_code=400, detail=t(lang, "withdrawal.not_enough_2"))
 
     wallet = (payload.wallet or user.default_ton_wallet or "").strip()
@@ -719,7 +790,9 @@ async def miniapp_withdraw(
     try:
         wallet = normalize_ton_wallet(wallet)
     except ValueError:
-        raise HTTPException(status_code=400, detail=t(lang, "withdrawal.invalid_wallet"))
+        raise HTTPException(
+            status_code=400, detail=t(lang, "withdrawal.invalid_wallet")
+        )
     except RuntimeError as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 

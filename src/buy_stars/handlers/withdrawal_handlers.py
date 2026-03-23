@@ -13,8 +13,10 @@ from services.withdrawal_flow import notify_admins_about_withdrawal
 
 router = Router()
 
+
 def register_withdrawal_handlers(dp) -> None:
     dp.include_router(router)
+
 
 class WithdrawState(StatesGroup):
     waiting_for_amount = State()
@@ -33,7 +35,7 @@ async def finalize_withdrawal(
     async with SessionLocal() as session:
         user = await get_user_by_telegram_id(session, telegram_id)
         if not user:
-            await message.answer(t(lang, 'withdrawal.not_found'))
+            await message.answer(t(lang, "withdrawal.not_found"))
             await state.clear()
             return
         await set_user_default_ton_wallet(session, user, wallet)
@@ -41,11 +43,12 @@ async def finalize_withdrawal(
         await notify_admins_about_withdrawal(message.bot, session, user, withdrawal)
 
     await message.answer(
-        t(lang, 'withdrawal.sent_info'),
+        t(lang, "withdrawal.sent_info"),
         parse_mode="HTML",
         reply_markup=back_to_profile_keyboard(lang),
     )
     await state.clear()
+
 
 @router.callback_query(F.data == "withdraw_referral")
 async def start_withdraw(callback: CallbackQuery, state: FSMContext):
@@ -53,14 +56,16 @@ async def start_withdraw(callback: CallbackQuery, state: FSMContext):
         user = await get_user_by_telegram_id(session, callback.from_user.id)
         lang = await get_lang(callback.from_user.id)
         if not user:
-            await callback.answer(t(lang, 'withdrawal.not_found'), show_alert=True)
+            await callback.answer(t(lang, "withdrawal.not_found"), show_alert=True)
             return
 
-        if user.referral_balance < Decimal("0.5"):
-            await callback.answer(t(lang, 'withdrawal.not_enough'), show_alert=True)
+        if user.balance < Decimal("1"):
+            await callback.answer(t(lang, "withdrawal.not_enough"), show_alert=True)
             return
 
-        await callback.message.edit_text(t(lang, 'withdrawal.amount'), reply_markup=back_to_profile_keyboard(lang))
+        await callback.message.edit_text(
+            t(lang, "withdrawal.amount"), reply_markup=back_to_profile_keyboard(lang)
+        )
         await state.set_state(WithdrawState.waiting_for_amount)
 
 
@@ -69,10 +74,11 @@ async def start_save_wallet(callback: CallbackQuery, state: FSMContext):
     lang = await get_lang(callback.from_user.id)
     await state.set_state(WithdrawState.waiting_for_wallet_save)
     await callback.message.edit_text(
-        t(lang, 'withdrawal.wallet_change'),
+        t(lang, "withdrawal.wallet_change"),
         reply_markup=back_to_profile_keyboard(lang),
     )
     await callback.answer()
+
 
 @router.message(WithdrawState.waiting_for_amount)
 async def ask_wallet(message: Message, state: FSMContext):
@@ -80,21 +86,21 @@ async def ask_wallet(message: Message, state: FSMContext):
     try:
         amount = Decimal(message.text)
     except Exception:
-        await message.answer(t(lang, 'withdrawal.invalid_amount'))
+        await message.answer(t(lang, "withdrawal.invalid_amount"))
         return
 
-    if amount < Decimal("0.5"):
-        await message.answer(t(lang, 'withdrawal.not_enough'))
+    if amount < Decimal("1"):
+        await message.answer(t(lang, "withdrawal.not_enough"))
         return
 
     async with SessionLocal() as session:
         user = await get_user_by_telegram_id(session, message.from_user.id)
         if not user:
-            await message.answer(t(lang, 'withdrawal.not_found'))
+            await message.answer(t(lang, "withdrawal.not_found"))
             await state.clear()
             return
-        if amount > user.referral_balance:
-            await message.answer(t(lang, 'withdrawal.not_enough_2'))
+        if amount > user.balance:
+            await message.answer(t(lang, "withdrawal.not_enough_2"))
             return
         saved_wallet = user.default_ton_wallet
 
@@ -109,10 +115,12 @@ async def ask_wallet(message: Message, state: FSMContext):
         )
         return
 
-    await message.answer(t(lang, 'withdrawal.wallet'))
+    await message.answer(t(lang, "withdrawal.wallet"))
 
 
-@router.callback_query(WithdrawState.waiting_for_wallet, F.data == "withdraw_use_saved_wallet")
+@router.callback_query(
+    WithdrawState.waiting_for_wallet, F.data == "withdraw_use_saved_wallet"
+)
 async def use_saved_wallet(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     amount = data.get("amount")
@@ -120,21 +128,26 @@ async def use_saved_wallet(callback: CallbackQuery, state: FSMContext):
     lang = await get_lang(callback.from_user.id)
 
     if not amount or not saved_wallet:
-        await callback.answer(t(lang, 'withdrawal.wallet'), show_alert=True)
+        await callback.answer(t(lang, "withdrawal.wallet"), show_alert=True)
         return
 
     await callback.answer()
-    await finalize_withdrawal(callback.message, callback.from_user.id, amount, saved_wallet, lang, state)
+    await finalize_withdrawal(
+        callback.message, callback.from_user.id, amount, saved_wallet, lang, state
+    )
 
 
-@router.callback_query(WithdrawState.waiting_for_wallet, F.data == "withdraw_change_wallet")
+@router.callback_query(
+    WithdrawState.waiting_for_wallet, F.data == "withdraw_change_wallet"
+)
 async def change_saved_wallet(callback: CallbackQuery, state: FSMContext):
     lang = await get_lang(callback.from_user.id)
     await callback.answer()
     await callback.message.edit_text(
-        t(lang, 'withdrawal.wallet_change'),
+        t(lang, "withdrawal.wallet_change"),
         reply_markup=back_to_profile_keyboard(lang),
     )
+
 
 @router.message(WithdrawState.waiting_for_wallet)
 async def create_withdraw_callback(message: Message, state: FSMContext):
@@ -145,12 +158,14 @@ async def create_withdraw_callback(message: Message, state: FSMContext):
     try:
         wallet = normalize_ton_wallet(wallet)
     except ValueError:
-        await message.answer(t(lang, 'withdrawal.invalid_wallet'))
+        await message.answer(t(lang, "withdrawal.invalid_wallet"))
         return
     except RuntimeError as exc:
         await message.answer(str(exc))
         return
-    await finalize_withdrawal(message, message.from_user.id, amount, wallet, lang, state)
+    await finalize_withdrawal(
+        message, message.from_user.id, amount, wallet, lang, state
+    )
 
 
 @router.message(WithdrawState.waiting_for_wallet_save)
@@ -160,7 +175,7 @@ async def save_wallet_callback(message: Message, state: FSMContext):
     try:
         wallet = normalize_ton_wallet(wallet)
     except ValueError:
-        await message.answer(t(lang, 'withdrawal.invalid_wallet'))
+        await message.answer(t(lang, "withdrawal.invalid_wallet"))
         return
     except RuntimeError as exc:
         await message.answer(str(exc))
@@ -169,13 +184,13 @@ async def save_wallet_callback(message: Message, state: FSMContext):
     async with SessionLocal() as session:
         user = await get_user_by_telegram_id(session, message.from_user.id)
         if not user:
-            await message.answer(t(lang, 'withdrawal.not_found'))
+            await message.answer(t(lang, "withdrawal.not_found"))
             await state.clear()
             return
         await set_user_default_ton_wallet(session, user, wallet)
 
     await message.answer(
-        t(lang, 'withdrawal.wallet_saved'),
+        t(lang, "withdrawal.wallet_saved"),
         parse_mode="HTML",
         reply_markup=back_to_profile_keyboard(lang),
     )

@@ -3,10 +3,14 @@ import { useEffect, useMemo, useState } from "react";
 export function useTelegramWebApp() {
   const [tgUser, setTgUser] = useState(null);
   const [initData, setInitData] = useState("");
+  const [isTelegramWebApp, setIsTelegramWebApp] = useState(null);
 
   useEffect(() => {
     const webApp = window.Telegram?.WebApp;
-    if (!webApp) return;
+    if (!webApp) {
+      setIsTelegramWebApp(false);
+      return;
+    }
 
     webApp.ready();
     webApp.expand();
@@ -15,6 +19,7 @@ export function useTelegramWebApp() {
     webApp.setBackgroundColor?.("#0f1116");
     setTgUser(webApp.initDataUnsafe?.user || null);
     setInitData(webApp.initData || "");
+    setIsTelegramWebApp(Boolean(webApp.initData));
   }, []);
 
   const userLabel = useMemo(() => {
@@ -45,6 +50,7 @@ export function useTelegramWebApp() {
     userLabel,
     initials,
     initData,
+    isTelegramWebApp,
     sendData
   };
 }

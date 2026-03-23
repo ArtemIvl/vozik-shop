@@ -4,13 +4,16 @@ from sqlalchemy.orm import relationship
 from enum import Enum as PyEnum
 from db.base import Base
 
+
 class OrderType(PyEnum):
     STARS = "stars"
     PREMIUM = "premium"
 
+
 class PaymentType(PyEnum):
     TON = "TON"
     USDT = "USDT"
+
 
 class OrderStatus(PyEnum):
     PENDING = "PENDING"
@@ -18,6 +21,7 @@ class OrderStatus(PyEnum):
     PAID = "PAID"
     FAILED = "FAILED"
     CANCELLED = "CANCELLED"
+
 
 class Order(Base):
     __tablename__ = "orders"
@@ -37,6 +41,10 @@ class Order(Base):
     order_type = Column(Enum(OrderType), default=OrderType.STARS)
 
     memo = Column(String, nullable=False)
-    created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
 
     user = relationship("User", back_populates="orders")

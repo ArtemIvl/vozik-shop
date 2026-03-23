@@ -22,6 +22,10 @@ class Withdrawal(Base):
     status = Column(
         Enum(WithdrawalStatus), default=WithdrawalStatus.PENDING, nullable=False
     )
-    created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
 
     user = relationship("User", back_populates="withdrawals")

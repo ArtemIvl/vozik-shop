@@ -14,10 +14,11 @@ import { getMiniAppPendingOrders, getMiniAppPendingSellStarsOrders } from "./ser
 import { useAppLanguage } from "./hooks/useAppLanguage";
 
 export default function App() {
-  const { tgUser, userLabel, initials, initData, sendData } = useTelegramWebApp();
+  const { tgUser, userLabel, initials, initData, isTelegramWebApp, sendData } = useTelegramWebApp();
   const { language, t, loadLanguage, updateLanguage, languageLoading } = useAppLanguage(initData);
   const [activePage, setActivePage] = useState("menu");
   const [languageOpen, setLanguageOpen] = useState(false);
+  const [visitedPages, setVisitedPages] = useState(() => new Set(["menu"]));
   const [pendingCounts, setPendingCounts] = useState({
     buy_stars: 0,
     buy_tg_premium: 0,
@@ -49,13 +50,18 @@ export default function App() {
 
   useEffect(() => {
     refreshPendingCounts();
-  }, [initData, activePage]);
+  }, [initData]);
 
   useEffect(() => {
     loadLanguage();
   }, [initData]);
 
   const handleNavSelect = (id) => {
+    setVisitedPages((current) => {
+      const next = new Set(current);
+      next.add(id);
+      return next;
+    });
     if (id === "buy_stars") {
       setActivePage("buy_stars");
       return;
@@ -80,8 +86,23 @@ export default function App() {
     sendData({ event: "menu_action", action: id });
   };
 
+  if (isTelegramWebApp === false) {
+    return (
+      <main className="mx-auto flex min-h-screen w-full max-w-md items-center justify-center px-4 text-tg-text">
+        <div className="rounded-[2rem] border border-white/10 bg-tg-surface p-6 text-center shadow-panel">
+          <p className="text-sm uppercase tracking-[0.18em] text-[#FFD767]">Telegram only</p>
+          <h1 className="mt-3 text-2xl font-semibold text-tg-text">This app is not available here</h1>
+          <p className="mt-3 text-sm leading-6 text-tg-muted">
+            Open this page from the Telegram bot mini app to continue.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <AppShell
+      scrollKey={activePage}
       bottomNav={(
         <BottomNav
           activePage={activePage}
@@ -109,58 +130,76 @@ export default function App() {
         </div>
       ) : null}
 
-      {activePage === "menu" ? (
-        <MainMenuPage
-          userLabel={userLabel}
-          initials={initials}
-          initData={initData}
-          t={t}
-          supportUrl="https://t.me/VozikShop_support"
-          onOpenLanguage={() => setLanguageOpen(true)}
-          onOpenGift={() => setActivePage("gift_promo")}
-        />
+      {visitedPages.has("menu") ? (
+        <div className={activePage === "menu" ? "block" : "hidden"}>
+          <MainMenuPage
+            userLabel={userLabel}
+            initials={initials}
+            initData={initData}
+            t={t}
+            supportUrl="https://t.me/VozikShop_support"
+            onOpenLanguage={() => setLanguageOpen(true)}
+            onOpenGift={() => {
+              setVisitedPages((current) => new Set(current).add("gift_promo"));
+              setActivePage("gift_promo");
+            }}
+          />
+        </div>
       ) : null}
 
-      {activePage === "buy_stars" ? (
-        <BuyStarsPage
-          initData={initData}
-          tgUser={tgUser}
-          sendData={sendData}
-          onOrdersUpdated={refreshPendingCounts}
-          t={t}
-        />
+      {visitedPages.has("buy_stars") ? (
+        <div className={activePage === "buy_stars" ? "block" : "hidden"}>
+          <BuyStarsPage
+            initData={initData}
+            tgUser={tgUser}
+            sendData={sendData}
+            isActive={activePage === "buy_stars"}
+            onOrdersUpdated={refreshPendingCounts}
+            t={t}
+          />
+        </div>
       ) : null}
 
-      {activePage === "buy_premium" ? (
-        <BuyPremiumPage
-          initData={initData}
-          tgUser={tgUser}
-          sendData={sendData}
-          onOrdersUpdated={refreshPendingCounts}
-          t={t}
-        />
+      {visitedPages.has("buy_premium") ? (
+        <div className={activePage === "buy_premium" ? "block" : "hidden"}>
+          <BuyPremiumPage
+            initData={initData}
+            tgUser={tgUser}
+            sendData={sendData}
+            isActive={activePage === "buy_premium"}
+            onOrdersUpdated={refreshPendingCounts}
+            t={t}
+          />
+        </div>
       ) : null}
 
-      {activePage === "gift_promo" ? (
-        <GiftPromoPage
-          initData={initData}
-          t={t}
-        />
+      {visitedPages.has("gift_promo") ? (
+        <div className={activePage === "gift_promo" ? "block" : "hidden"}>
+          <GiftPromoPage
+            initData={initData}
+            t={t}
+          />
+        </div>
       ) : null}
 
-      {activePage === "sell_stars" ? (
-        <SellStarsPage
-          initData={initData}
-          onOrdersUpdated={refreshPendingCounts}
-          t={t}
-        />
+      {visitedPages.has("sell_stars") ? (
+        <div className={activePage === "sell_stars" ? "block" : "hidden"}>
+          <SellStarsPage
+            initData={initData}
+            isActive={activePage === "sell_stars"}
+            onOrdersUpdated={refreshPendingCounts}
+            t={t}
+          />
+        </div>
       ) : null}
 
-      {activePage === "profile" ? (
-        <ProfilePage
-          initData={initData}
-          t={t}
-        />
+      {visitedPages.has("profile") ? (
+        <div className={activePage === "profile" ? "block" : "hidden"}>
+          <ProfilePage
+            initData={initData}
+            t={t}
+          />
+        </div>
       ) : null}
     </AppShell>
   );

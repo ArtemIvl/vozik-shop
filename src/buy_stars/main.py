@@ -19,8 +19,7 @@ from middlewares.ban_check import BanCheckMiddleware
 
 # Настройка логов
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
 )
 
 bot = Bot(token=BOT_TOKEN)
@@ -44,6 +43,7 @@ register_language_handlers(dp)
 register_gift_promo_handlers(dp)
 register_sell_stars_handlers(dp)
 
+
 async def payment_checker_loop():
     while True:
         try:
@@ -52,10 +52,12 @@ async def payment_checker_loop():
             print(f"[payment_checker_loop] Error: {e}")
         await asyncio.sleep(30)  # каждые 30 секунд
 
+
 async def main():
     await init_models()
     asyncio.create_task(payment_checker_loop())
     await dp.start_polling(bot)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -24,7 +24,6 @@ def withdraw_info_keyboard(withdrawal_id: int) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
 
 
-
 async def pending_withdraw_keyboard(
     session: AsyncSession, withdrawals: list[Withdrawal], page: int, per_page: int = 10
 ) -> InlineKeyboardMarkup:
@@ -40,7 +39,7 @@ async def pending_withdraw_keyboard(
             inline_keyboard.append(
                 [
                     InlineKeyboardButton(
-                        text=f"Вывод на сумму {withdrawal.ton_amount} TON",
+                        text=f"Вывод на сумму {withdrawal.ton_amount} USDT",
                         callback_data=f"withdraw_info_{withdrawal.id}",
                     )
                 ]
@@ -64,24 +63,35 @@ async def pending_withdraw_keyboard(
 
     return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
 
+
 def confirm_withdraw_keyboard(withdrawal_id: int) -> InlineKeyboardMarkup:
     inline_keyboard = [
         [
-            InlineKeyboardButton(text="✅ Да, подтвердить", callback_data=f"confirm_final_{withdrawal_id}")
+            InlineKeyboardButton(
+                text="✅ Да, подтвердить",
+                callback_data=f"confirm_final_{withdrawal_id}",
+            )
         ],
         [
-            InlineKeyboardButton(text="🔙 Назад", callback_data=f"withdraw_info_{withdrawal_id}")
-        ]
+            InlineKeyboardButton(
+                text="🔙 Назад", callback_data=f"withdraw_info_{withdrawal_id}"
+            )
+        ],
     ]
     return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
+
 
 def reject_withdraw_keyboard(withdrawal_id: int) -> InlineKeyboardMarkup:
     inline_keyboard = [
         [
-            InlineKeyboardButton(text="❌ Да, отклонить", callback_data=f"reject_final_{withdrawal_id}")
+            InlineKeyboardButton(
+                text="❌ Да, отклонить", callback_data=f"reject_final_{withdrawal_id}"
+            )
         ],
         [
-            InlineKeyboardButton(text="🔙 Назад", callback_data=f"withdraw_info_{withdrawal_id}")
-        ]
+            InlineKeyboardButton(
+                text="🔙 Назад", callback_data=f"withdraw_info_{withdrawal_id}"
+            )
+        ],
     ]
     return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)

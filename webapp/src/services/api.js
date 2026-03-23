@@ -308,6 +308,29 @@ export async function createMiniAppSellStarsOrder(payload) {
   return data;
 }
 
+export async function getMiniAppSellStarsQuote(payload) {
+  const response = await fetch(buildUrl("/external/miniapp/sell-stars/quote"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const rawText = await response.text();
+  let data = {};
+  try {
+    data = rawText ? JSON.parse(rawText) : {};
+  } catch {
+    data = {};
+  }
+
+  if (!response.ok) {
+    throw new Error(data.detail || "Failed to load sell stars quote");
+  }
+  return data;
+}
+
 export async function getMiniAppPendingSellStarsOrders(payload) {
   const response = await fetch(buildUrl("/external/miniapp/sell-stars/pending"), {
     method: "POST",

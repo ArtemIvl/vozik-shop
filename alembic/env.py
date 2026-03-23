@@ -11,6 +11,7 @@ for path in (PROJECT_ROOT, APP_ROOT):
 
 from sqlalchemy.ext.asyncio import async_engine_from_config, AsyncEngine
 from alembic import context
+
 # from src.buy_stars.config import DATABASE_URL
 from src.buy_stars.db.base import Base
 from src.buy_stars.db import models

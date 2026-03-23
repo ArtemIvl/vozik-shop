@@ -3,7 +3,9 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from services.localization import t
 
 
-def sell_stars_quote_keyboard(lang: str, order_id: int, stars_amount: int) -> InlineKeyboardMarkup:
+def sell_stars_quote_keyboard(
+    lang: str, order_id: int, stars_amount: int
+) -> InlineKeyboardMarkup:
     inline_keyboard = [
         [
             InlineKeyboardButton(
@@ -12,7 +14,9 @@ def sell_stars_quote_keyboard(lang: str, order_id: int, stars_amount: int) -> In
             )
         ],
         [
-            InlineKeyboardButton(text=t(lang, "keyboards.sell_stars.back"), callback_data="back"),
+            InlineKeyboardButton(
+                text=t(lang, "keyboards.sell_stars.back"), callback_data="back"
+            ),
         ],
     ]
     return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)

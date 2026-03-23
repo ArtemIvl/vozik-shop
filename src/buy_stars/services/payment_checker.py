@@ -2,9 +2,17 @@ import asyncio
 from db.session import SessionLocal
 from services.fragment import buy_stars, buy_premium
 from requests.order_requests import (
-    get_pending_orders, mark_order_paid, mark_order_cancelled, mark_order_failed, mark_order_processing
+    get_pending_orders,
+    mark_order_paid,
+    mark_order_cancelled,
+    mark_order_failed,
+    mark_order_processing,
 )
-from requests.user_requests import add_referral_bonus, check_and_increment_active_referral, get_user_by_id
+from requests.user_requests import (
+    add_referral_bonus,
+    check_and_increment_active_referral,
+    get_user_by_id,
+)
 from config import TON_WALLET_ADDRESS
 from db.models.order import Order, OrderType, PaymentType
 from aiogram import Bot
@@ -38,7 +46,7 @@ async def check_payments(bot: Bot):
     except Exception as e:
         print(f"[check_payments] Ошибка при получении транзакций: {e}")
         return
-    
+
     for order in ton_orders:
         await process_order(order, tx_data, bot)
 
@@ -49,9 +57,9 @@ async def process_order(order: Order, tx_data: list, bot: Bot):
             tx = find_matching_transaction(tx_data, order.memo, order.price_ton)
             if not tx:
                 return
-            
+
             await mark_order_processing(session, order.id)
-            
+
             lang = await get_lang(order.user.telegram_id)
 
             # Покупка в зависимости от типа
@@ -63,19 +71,29 @@ async def process_order(order: Order, tx_data: list, bot: Bot):
                     return  # не маркируем как failed, повторим позже
             elif order.order_type == OrderType.PREMIUM:
                 try:
-                    success = await try_buy_premium(order.to_username, order.premium_months)
+                    success = await try_buy_premium(
+                        order.to_username, order.premium_months
+                    )
                 except Exception as e:
                     print(f"[process_order] Ошибка при try_buy_premium: {e}")
                     return
             else:
-                await bot.send_message(order.user.telegram_id, t(lang, 'payment.unknown_order'))
+                await bot.send_message(
+                    order.user.telegram_id, t(lang, "payment.unknown_order")
+                )
                 return
 
             if not success:
                 await mark_order_failed(session, order.id)
-                print(f"[process_order] Покупка не удалась, но транзакция найдена. Order #{order.id}")
-                await bot.send_message(order.user.telegram_id, t(lang, "payment.order_failed"))
-                await notify_admins_order_failed(bot, session, order, source="TON checker")
+                print(
+                    f"[process_order] Покупка не удалась, но транзакция найдена. Order #{order.id}"
+                )
+                await bot.send_message(
+                    order.user.telegram_id, t(lang, "payment.order_failed")
+                )
+                await notify_admins_order_failed(
+                    bot, session, order, source="TON checker"
+                )
                 return  # mark_failed — потому что TON уже пришёл, но Fragment не дал ответ, можно повторить по кнопке
 
             # ✅ Покупка удалась
@@ -84,11 +102,15 @@ async def process_order(order: Order, tx_data: list, bot: Bot):
             except Exception as e:
                 print(f"[process_order] Не удалось пометить заказ как оплачен: {e}")
                 return  # повторим позже, звёзды уже выданы, но база не обновилась
-            
-            gift_bonus = await check_and_increment_active_referral(session, order.user.id)
+
+            gift_bonus = await check_and_increment_active_referral(
+                session, order.user.id
+            )
 
             # 💸 Реферальный бонус
-            bonuses = await add_referral_bonus(session, order.user, order.price_ton, order.order_type)
+            bonuses = await add_referral_bonus(
+                session, order.user, order.price_ton, order.order_type
+            )
 
             # ✉️ Уведомление пользователю
             if order.order_type == OrderType.PREMIUM:
@@ -108,15 +130,18 @@ async def process_order(order: Order, tx_data: list, bot: Bot):
                     lang = await get_lang(referrer.telegram_id)
                     await bot.send_message(
                         referrer.telegram_id,
-                        f"{t(lang, 'payment.referral_confirm_1')} {bonus:.4f} {t(lang, 'payment.referral_confirm_2')}"
+                        f"{t(lang, 'payment.referral_confirm_1')} {bonus:.2f} {t(lang, 'payment.referral_confirm_2')}",
                     )
     except Exception as e:
         print(f"[process_order] Ошибка в заказе #{order.id}: {e}")
         try:
             lang = await get_lang(order.user.telegram_id)
-            await bot.send_message(order.user.telegram_id, t(lang, 'payment.error_processing'))
+            await bot.send_message(
+                order.user.telegram_id, t(lang, "payment.error_processing")
+            )
         except Exception:
             pass
+
 
 async def try_buy_stars(username, amount) -> bool:
     try:
@@ -140,7 +165,9 @@ async def try_buy_premium(username, months) -> bool:
         return False
 
 
-def find_matching_transaction(tx_data: list, memo: str, expected_amount: Decimal) -> dict | None:
+def find_matching_transaction(
+    tx_data: list, memo: str, expected_amount: Decimal
+) -> dict | None:
     for tx in tx_data:
         extracted = extract_memo_from_tx(tx)
         if not extracted or extracted.strip() != memo:

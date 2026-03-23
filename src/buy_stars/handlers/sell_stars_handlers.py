@@ -17,7 +17,7 @@ from requests.sell_star_order_requests import (
 )
 from requests.user_requests import get_user_by_telegram_id
 from services.localization import get_lang, t
-from services.payment import calculate_sell_stars_payout_in_ton
+from services.payment import calculate_sell_stars_payout_in_usdt
 
 router = Router()
 
@@ -47,7 +47,9 @@ def _parse_sell_payload(payload: str) -> int | None:
     return int(order_id_str)
 
 
-async def _delete_invoice_if_still_pending(bot, chat_id: int, message_id: int, order_id: int) -> None:
+async def _delete_invoice_if_still_pending(
+    bot, chat_id: int, message_id: int, order_id: int
+) -> None:
     await asyncio.sleep(INVOICE_TIMEOUT_SECONDS)
     try:
         async with SessionLocal() as session:
@@ -76,25 +78,34 @@ async def handle_sell_stars_amount(message: Message, state: FSMContext) -> None:
     lang = await get_lang(message.from_user.id)
     text = (message.text or "").strip()
     if not text.isdigit():
-        await message.answer(t(lang, "sell_stars.invalid_amount"), reply_markup=back_to_menu_keyboard(lang))
+        await message.answer(
+            t(lang, "sell_stars.invalid_amount"),
+            reply_markup=back_to_menu_keyboard(lang),
+        )
         return
 
     stars_amount = int(text)
     if stars_amount < SELL_STARS_MIN_AMOUNT:
-        await message.answer(t(lang, "sell_stars.invalid_amount"), reply_markup=back_to_menu_keyboard(lang))
+        await message.answer(
+            t(lang, "sell_stars.invalid_amount"),
+            reply_markup=back_to_menu_keyboard(lang),
+        )
         return
 
     async with SessionLocal() as session:
         user = await get_user_by_telegram_id(session, message.from_user.id)
         if not user:
-            await message.answer(t(lang, "withdrawal.not_found"), reply_markup=back_to_menu_keyboard(lang))
+            await message.answer(
+                t(lang, "withdrawal.not_found"),
+                reply_markup=back_to_menu_keyboard(lang),
+            )
             return
-        payout_ton = await calculate_sell_stars_payout_in_ton(stars_amount)
+        payout_usdt = await calculate_sell_stars_payout_in_usdt(stars_amount)
         order = await create_sell_star_order(
             session=session,
             user_id=user.id,
             stars_amount=stars_amount,
-            payout_ton=payout_ton,
+            payout_usdt=payout_usdt,
         )
 
     await state.clear()
@@ -102,7 +113,7 @@ async def handle_sell_stars_amount(message: Message, state: FSMContext) -> None:
         (
             f"{t(lang, 'sell_stars.quote_title')}\n\n"
             f"{t(lang, 'sell_stars.quote_stars')} <b>{stars_amount}</b> ⭐️\n"
-            f"{t(lang, 'sell_stars.quote_payout')} <b>{payout_ton}</b> TON\n\n"
+            f"{t(lang, 'sell_stars.quote_payout')} <b>{payout_usdt}</b> USDT\n\n"
             f"{t(lang, 'sell_stars.quote_info')}"
         ),
         parse_mode="HTML",
@@ -136,7 +147,11 @@ async def send_sell_stars_invoice(callback: CallbackQuery) -> None:
         description=t(lang, "sell_stars.invoice_description"),
         payload=_build_sell_payload(order.id),
         currency="XTR",
-        prices=[LabeledPrice(label=t(lang, "sell_stars.invoice_label"), amount=order.stars_amount)],
+        prices=[
+            LabeledPrice(
+                label=t(lang, "sell_stars.invoice_label"), amount=order.stars_amount
+            )
+        ],
     )
     asyncio.create_task(
         _delete_invoice_if_still_pending(
@@ -170,7 +185,9 @@ async def handle_pre_checkout(query: PreCheckoutQuery) -> None:
         and query.currency == "XTR"
     )
     if not valid:
-        await query.answer(ok=False, error_message=t(lang, "sell_stars.precheckout_error"))
+        await query.answer(
+            ok=False, error_message=t(lang, "sell_stars.precheckout_error")
+        )
         return
 
     await query.answer(ok=True)
@@ -188,7 +205,10 @@ async def handle_successful_sell_stars_payment(message: Message) -> None:
         user = await get_user_by_telegram_id(session, message.from_user.id)
         order = await get_sell_star_order_by_id(session, order_id)
         if not user or not order or order.user_id != user.id:
-            await message.answer(t(lang, "sell_stars.order_not_found"), reply_markup=back_to_menu_keyboard(lang))
+            await message.answer(
+                t(lang, "sell_stars.order_not_found"),
+                reply_markup=back_to_menu_keyboard(lang),
+            )
             return
 
         updated = await mark_sell_star_order_paid(
@@ -198,7 +218,10 @@ async def handle_successful_sell_stars_payment(message: Message) -> None:
             provider_payment_charge_id=payment.provider_payment_charge_id,
         )
         if not updated:
-            await message.answer(t(lang, "sell_stars.already_processed"), reply_markup=back_to_menu_keyboard(lang))
+            await message.answer(
+                t(lang, "sell_stars.already_processed"),
+                reply_markup=back_to_menu_keyboard(lang),
+            )
             return
 
         user = await credit_user_balance_from_sell(session, user.id, order.payout_ton)
@@ -207,8 +230,8 @@ async def handle_successful_sell_stars_payment(message: Message) -> None:
         (
             f"{t(lang, 'sell_stars.payment_success')}\n\n"
             f"{t(lang, 'sell_stars.quote_stars')} <b>{order.stars_amount}</b> ⭐️\n"
-            f"{t(lang, 'sell_stars.quote_payout')} <b>{order.payout_ton}</b> TON\n"
-            f"{t(lang, 'profile.balance')} <b>{user.referral_balance:.4f}</b> TON"
+            f"{t(lang, 'sell_stars.quote_payout')} <b>{order.payout_ton}</b> USDT\n"
+            f"{t(lang, 'profile.balance')} <b>{user.balance:.2f}</b> USDT"
         ),
         parse_mode="HTML",
         reply_markup=back_to_menu_keyboard(lang),

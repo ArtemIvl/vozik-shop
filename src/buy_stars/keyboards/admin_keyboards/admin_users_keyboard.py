@@ -1,5 +1,6 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
+
 def manage_users_keyboard() -> InlineKeyboardMarkup:
     inline_keyboard = [
         [
@@ -7,7 +8,7 @@ def manage_users_keyboard() -> InlineKeyboardMarkup:
                 text="Посмотреть пользователя", callback_data="view_user"
             )
         ],
-         [
+        [
             InlineKeyboardButton(
                 text="Поменять комиссию", callback_data="change_commission"
             )
@@ -37,6 +38,7 @@ def manage_users_keyboard() -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text="🔙 Назад", callback_data="back_admin")]
     )
     return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
+
 
 def back_to_users_keyboard() -> InlineKeyboardMarkup:
     inline_keyboard = [

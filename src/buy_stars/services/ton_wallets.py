@@ -1,6 +1,5 @@
 import re
 
-
 RAW_TON_ADDRESS_RE = re.compile(r"^(?:-1|0):[0-9a-fA-F]{64}$")
 USER_FRIENDLY_TON_ADDRESS_RE = re.compile(r"^[A-Za-z0-9_-]{48}$")
 

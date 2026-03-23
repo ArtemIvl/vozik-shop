@@ -8,7 +8,7 @@ from db.models.order import Order, OrderStatus
 
 async def main():
     async with SessionLocal() as session:
-             # Step 1: get mapping of referrer_id -> active referral count
+        # Step 1: get mapping of referrer_id -> active referral count
         result = await session.execute(
             select(User.referred_by, func.count(distinct(User.id)))
             .join(Order, Order.user_id == User.id)

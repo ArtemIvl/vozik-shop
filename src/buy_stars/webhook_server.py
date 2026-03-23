@@ -21,5 +21,6 @@ app.include_router(external_router)
 async def _startup() -> None:
     await init_models()
 
+
 if __name__ == "__main__":
     uvicorn.run("webhook_server:app", host="0.0.0.0", port=8001)

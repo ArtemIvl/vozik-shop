@@ -1,6 +1,6 @@
 export default function StarMerchantCard({ stats, t }) {
   const starsBought = stats?.purchasedStarsTotal || 0;
-  const totalTon = stats?.totalEarnedTon || "0.0000";
+  const totalUsdt = stats?.totalEarnedUsdt || stats?.totalEarnedTon || "0.0000";
   const outperformPercent = stats?.outperformPercent ?? 0;
 
   return (
@@ -13,16 +13,15 @@ export default function StarMerchantCard({ stats, t }) {
           <p className="mt-2 text-3xl font-semibold text-tg-text">{starsBought}</p>
         </div>
         <div className="rounded-[1.35rem] border border-[#5fd0ff]/20 bg-[#131c25] px-3 py-4 text-center">
-          <p className="text-[11px] uppercase tracking-[0.16em] text-[#5fd0ff]">{t.tonEarnedLabel}</p>
-          <p className="mt-2 text-3xl font-semibold text-tg-text">{totalTon}</p>
-          <p className="mt-1 text-xs text-tg-muted">TON</p>
+          <p className="text-[10px] uppercase tracking-[0.12em] text-[#5fd0ff]">{t.tonEarnedLabel}</p>
+          <p className="mt-2 text-3xl font-semibold text-tg-text">{totalUsdt}</p>
+          <p className="mt-1 text-xs text-tg-muted">USDT</p>
         </div>
       </div>
 
       <p className="mt-4 text-center text-sm text-tg-text">
         {t.betterThanPrefix} <span className="font-semibold text-[#FFD767]">{outperformPercent}%</span> {t.betterThanSuffix}
       </p>
-      <p className="mt-1 text-center text-xs text-tg-muted">{t.tonEarnedHint}</p>
     </section>
   );
 }

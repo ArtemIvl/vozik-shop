@@ -10,6 +10,7 @@ from aiogram.exceptions import (
 from db.session import SessionLocal
 from requests.user_requests import get_all_users
 
+
 async def send_broadcast(bot: Bot, data: dict) -> None:
     async with SessionLocal() as session:
         users = await get_all_users(session)
@@ -77,7 +78,6 @@ async def send_broadcast(bot: Bot, data: dict) -> None:
                 )
             except Exception:
                 pass
-        
 
 
 async def delayed_broadcast(bot, delay: float, data: dict) -> None:

@@ -8,7 +8,7 @@ const NAV_ITEMS = [
 
 export default function BottomNav({ activePage, onSelect, t, pendingCounts }) {
   return (
-    <nav className="fixed bottom-2 left-0 right-0 z-50 mx-auto w-[calc(100%-16px)] max-w-[calc(28rem-16px)] rounded-2xl border border-white/10 bg-tg-surface/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur">
+    <nav className="absolute bottom-2 left-2 right-2 z-50 rounded-2xl border border-white/10 bg-tg-surface/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur">
       <div className="grid grid-cols-5 gap-1">
         {NAV_ITEMS.map((item) => {
           const isActive = activePage === item.id;
@@ -38,7 +38,7 @@ export default function BottomNav({ activePage, onSelect, t, pendingCounts }) {
                   {badgeCount > 99 ? "99+" : badgeCount}
                 </span>
               ) : null}
-              <div className="text-base">{item.icon}</div>
+              <div className="text-xl leading-none">{item.icon}</div>
               <div className="mt-0.5 truncate text-[10px]">{t[item.labelKey]}</div>
             </button>
           );

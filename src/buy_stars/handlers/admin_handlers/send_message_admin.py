@@ -20,14 +20,17 @@ class BroadcastState(StatesGroup):
     choosing_time = State()
     waiting_to_send = State()
 
+
 kyiv_tz = timezone("Europe/Kyiv")
+
 
 @message_admin_router.callback_query(F.data == "send_message")
 async def start_broadcast(callback: types.CallbackQuery, state: FSMContext):
     await state.clear()
     await state.set_state(BroadcastState.entering_message)
     sent = await callback.message.edit_text(
-        "Введите сообщение для рассылки (поддерживается форматирование Telegram):", reply_markup=back_to_message_keyboard()
+        "Введите сообщение для рассылки (поддерживается форматирование Telegram):",
+        reply_markup=back_to_message_keyboard(),
     )
     await state.update_data(last_bot_message_id=sent.message_id)
 
@@ -44,7 +47,10 @@ async def receive_message_text(message: types.Message, state: FSMContext):
     text = message.text or message.caption
 
     if text and len(text) > 4096:
-        sent = await message.answer("❗️Сообщение слишком длинное. Попробуйте ещё раз:", reply_markup=back_to_message_keyboard())
+        sent = await message.answer(
+            "❗️Сообщение слишком длинное. Попробуйте ещё раз:",
+            reply_markup=back_to_message_keyboard(),
+        )
         await state.update_data(last_bot_message_id=sent.message_id)
         return
 
@@ -65,9 +71,11 @@ async def receive_message_text(message: types.Message, state: FSMContext):
 @message_admin_router.callback_query(F.data == "send_now")
 async def send_now(callback: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
-    sent = await callback.message.edit_text("📤 Рассылка запущена...\n0%", reply_markup=admin_back_keyboard())
+    sent = await callback.message.edit_text(
+        "📤 Рассылка запущена...\n0%", reply_markup=admin_back_keyboard()
+    )
 
-        # Передаём данные для прогресса
+    # Передаём данные для прогресса
     data["progress_message_chat_id"] = callback.message.chat.id
     data["progress_message_id"] = sent.message_id
 
@@ -90,7 +98,9 @@ async def schedule_send(message: types.Message, state: FSMContext):
         now = datetime.now(kyiv_tz)
         send_at = kyiv_tz.localize(datetime.combine(now.date(), t))
         if send_at < now:
-            send_at = kyiv_tz.localize(datetime.combine(now.date(), t) + timedelta(days=1))
+            send_at = kyiv_tz.localize(
+                datetime.combine(now.date(), t) + timedelta(days=1)
+            )
         delay = (send_at - now).total_seconds()
 
         # Отправляем сообщение с прогрессом

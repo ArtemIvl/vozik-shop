@@ -31,7 +31,7 @@ export default function OrderDetailsModal({ order, onClose, t }) {
   const quantityLabel = order.starsAmount
     ? `${order.starsAmount} ${t.stars}`
     : `${order.months} ${t.months}`;
-  const paymentAmountLabel = order.priceTon ? `${order.priceTon} TON` : `${order.priceUsdt || "-"} USD`;
+  const paymentAmountLabel = order.priceTon ? `${order.priceTon} TON` : `${order.priceUsdt || "-"} USDT`;
 
   const closeWithAnimation = () => {
     document.activeElement?.blur?.();
