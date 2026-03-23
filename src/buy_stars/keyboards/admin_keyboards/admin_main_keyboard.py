@@ -15,6 +15,11 @@ def admin_keyboard() -> InlineKeyboardMarkup:
         ],
         [
             InlineKeyboardButton(
+                text="Неудачные транзакции", callback_data="manage_failed_orders"
+            )
+        ],
+        [
+            InlineKeyboardButton(
                 text="Статистика", callback_data="bot_stats"
             )
         ],

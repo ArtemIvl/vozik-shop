@@ -6,6 +6,7 @@ from .user_admin import user_admin_router
 from .withdrawal_admin import withdraw_admin_router
 from .stats_admin import stats_admin_router
 from .send_message_admin import message_admin_router
+from .failed_orders_admin import failed_orders_admin_router
 
 
 def register_admin_handlers(dp):
@@ -16,6 +17,7 @@ def register_admin_handlers(dp):
     admin_router.include_router(base_admin_router)
     admin_router.include_router(user_admin_router)
     admin_router.include_router(withdraw_admin_router)
+    admin_router.include_router(failed_orders_admin_router)
     admin_router.include_router(stats_admin_router)
     admin_router.include_router(message_admin_router)
 

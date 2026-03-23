@@ -193,3 +193,13 @@ async def set_user_language(session: AsyncSession, telegram_id: int, language: L
     if user:
         user.language = language
         await session.commit()
+
+
+async def set_user_default_ton_wallet(session: AsyncSession, user: User | None, wallet: str | None) -> None:
+    if not user:
+        return
+    normalized_wallet = wallet.strip() if wallet else None
+    normalized_wallet = normalized_wallet or None
+    if user.default_ton_wallet != normalized_wallet:
+        user.default_ton_wallet = normalized_wallet
+        await session.commit()
