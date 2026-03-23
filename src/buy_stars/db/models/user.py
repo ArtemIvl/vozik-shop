@@ -26,9 +26,11 @@ class User(Base):
     referral_balance = Column(Numeric(18, 8), default=0)
     referral_total_earned = Column(Numeric(18, 8), default=0)
     referral_commission = Column(Numeric(10, 2), default=0.1)
+    default_ton_wallet = Column(String, nullable=True)
 
     language = Column(Enum(Language), default=Language.EN)
 
     orders = relationship("Order", back_populates="user")
+    sell_star_orders = relationship("SellStarOrder", back_populates="user")
     referrals = relationship("User", backref="referrer", remote_side=[id])
     withdrawals = relationship("Withdrawal", back_populates="user")

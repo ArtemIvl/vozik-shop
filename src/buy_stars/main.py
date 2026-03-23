@@ -11,6 +11,8 @@ from handlers.withdrawal_handlers import register_withdrawal_handlers
 from handlers.buy_tg_premium_handlers import register_buy_tg_premium_handlers
 from handlers.language_handlers import register_language_handlers
 from handlers.gift_promo_handlers import register_gift_promo_handlers
+from handlers.sell_stars_handlers import register_sell_stars_handlers
+from db.session import init_models
 from middlewares.private_chat_only import PrivateChatOnlyMiddleware
 from middlewares.username_tracking import UserTrackingMiddleware
 from middlewares.ban_check import BanCheckMiddleware
@@ -40,6 +42,7 @@ register_withdrawal_handlers(dp)
 register_buy_tg_premium_handlers(dp)
 register_language_handlers(dp)
 register_gift_promo_handlers(dp)
+register_sell_stars_handlers(dp)
 
 async def payment_checker_loop():
     while True:
@@ -50,6 +53,7 @@ async def payment_checker_loop():
         await asyncio.sleep(30)  # каждые 30 секунд
 
 async def main():
+    await init_models()
     asyncio.create_task(payment_checker_loop())
     await dp.start_polling(bot)
 

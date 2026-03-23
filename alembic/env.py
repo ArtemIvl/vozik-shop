@@ -3,6 +3,12 @@ import sys
 import asyncio
 from logging.config import fileConfig
 
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+APP_ROOT = os.path.join(PROJECT_ROOT, "src", "buy_stars")
+for path in (PROJECT_ROOT, APP_ROOT):
+    if path not in sys.path:
+        sys.path.insert(0, path)
+
 from sqlalchemy.ext.asyncio import async_engine_from_config, AsyncEngine
 from alembic import context
 # from src.buy_stars.config import DATABASE_URL
@@ -10,10 +16,6 @@ from src.buy_stars.db.base import Base
 from src.buy_stars.db import models
 from sqlalchemy.engine import make_url
 from sqlalchemy import create_engine
-
-
-# Add parent to path for imports
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 DATABASE_URL = "postgresql+asyncpg://bstars_user:tgstars123@127.0.0.1:5432/bstars_db"
 

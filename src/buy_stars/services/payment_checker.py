@@ -13,6 +13,7 @@ from datetime import datetime, timedelta, timezone
 import httpx
 from services.localization import t, get_lang
 from services.gift import handle_referral_gift_if_needed
+from services.admin_notifications import notify_admins_order_failed
 
 
 async def check_payments(bot: Bot):
@@ -74,6 +75,7 @@ async def process_order(order: Order, tx_data: list, bot: Bot):
                 await mark_order_failed(session, order.id)
                 print(f"[process_order] Покупка не удалась, но транзакция найдена. Order #{order.id}")
                 await bot.send_message(order.user.telegram_id, t(lang, "payment.order_failed"))
+                await notify_admins_order_failed(bot, session, order, source="TON checker")
                 return  # mark_failed — потому что TON уже пришёл, но Fragment не дал ответ, можно повторить по кнопке
 
             # ✅ Покупка удалась

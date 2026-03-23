@@ -10,6 +10,6 @@ def time_choice_keyboard() -> InlineKeyboardMarkup:
 
 def back_to_message_keyboard() -> InlineKeyboardMarkup:
     inline_keyboard = [
-        [InlineKeyboardButton(text="🔙 Назад", callback_data="send_message")]
+        [InlineKeyboardButton(text="🔙 Назад", callback_data="back_admin")]
     ]
     return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)

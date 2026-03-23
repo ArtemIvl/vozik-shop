@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --tg-bg: #0f1116;
+  --tg-surface: #18222d;
+  --tg-surface-soft: #1e2936;
+  --tg-card: #22303f;
+  --tg-text: #ecf2f8;
+  --tg-muted: #97a9bc;
+  --star: #ffd33d;
+  --vozik: #d4a72c;
+  --ink-dark: #0f1720;
+  font-family: "Space Grotesk", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  overflow: hidden;
+  background:
+    radial-gradient(140% 90% at 0% 0%, rgba(212, 167, 44, 0.12) 0%, rgba(212, 167, 44, 0) 55%),
+    radial-gradient(130% 70% at 100% 0%, rgba(255, 211, 61, 0.14) 0%, rgba(255, 211, 61, 0) 45%),
+    var(--tg-bg);
+  color: var(--tg-text);
+}
+
+#root {
+  min-height: 100%;
+}
+
+.gift-html {
+  line-height: 1.5;
+}
+
+.gift-html b {
+  font-weight: 700;
+}
+
+.gift-html blockquote {
+  margin: 10px 0;
+  border-left: 3px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: var(--tg-muted);
+}

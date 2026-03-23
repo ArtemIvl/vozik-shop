@@ -70,6 +70,22 @@
     "error_2": "⚠️ Error while processing your order. Contact support.",
     "error_3": "❌ We were unable to create payment link. Please try again later."
   },
+  "sell_stars": {
+    "amount_prompt": "Enter the amount of Stars you want to sell (min 50):",
+    "invalid_amount": "Invalid amount. Enter a number of Stars (min 50).",
+    "quote_title": "<b>Sell Stars order</b>",
+    "quote_stars": "<b>Stars to sell:</b>",
+    "quote_payout": "<b>You will receive:</b>",
+    "quote_info": "Press the button below and pay with Telegram Stars. After successful payment, TON will be credited to your balance.",
+    "invoice_title": "Sell Telegram Stars",
+    "invoice_description": "Payment for selling Stars in Vozik Shop",
+    "invoice_label": "Stars payment",
+    "order_not_found": "Order not found.",
+    "order_not_pending": "This order is no longer pending.",
+    "precheckout_error": "Unable to process this payment. Please create a new order.",
+    "already_processed": "This order has already been processed.",
+    "payment_success": "✅ Payment received. TON has been credited to your balance."
+  },
   "payment": {
     "unknown_order": "⚠️ Unknown order type.",
     "error_processing": "⚠️ Error processing the order. Please contact support.",
@@ -91,6 +107,12 @@
     "active_referrals": "<b>👥 Active referrals:</b>",
     "balance": "<b>🏦 Balance:</b>",
     "total_earned": "<b>Earned in total:</b>",
+    "saved_wallet": "<b>👛 Saved TON wallet:</b>",
+    "total_orders": "<b>🧾 Total paid orders:</b>",
+    "purchased_stars": "<b>⭐ Stars purchased:</b>",
+    "exchanged_stars": "<b>💱 Stars exchanged:</b>",
+    "received_ton": "<b>💎 TON received for sold stars:</b>",
+    "referral_earned": "<b>🤝 Referral earned:</b>",
     "info": "Withdrawals are available from 0.5 TON"
   },
   "withdrawal": {
@@ -98,11 +120,17 @@
     "not_enough": "Withdrawals are available from 0.5 TON",
     "amount": "Enter amount for withdrawal:",
     "invalid_amount": "Enter correct amount:",
+    "invalid_wallet": "Enter a valid TON wallet address.",
     "not_enough_2": "Not enough TON on your balance.",
     "wallet": "Enter your TON-wallet:",
+    "saved_wallet": "Your saved TON wallet:",
+    "wallet_saved_prompt": "Use this wallet for withdrawal or send a new one.",
+    "wallet_change": "Send a new TON wallet address:",
+    "wallet_saved": "✅ TON wallet saved successfully.",
     "sent_info": "✅ Your request for TON withdrawal has been sent successfully!\n\nYour request will be processed within 24 hours 🤝",
-    "confirmed": "✅ Your request has been approved!🫡\n\n💫 Soon TON will arrive at your wallet.",
-    "rejected": "❌ Your request has been rejected because you failed to follow our project's rules."
+    "confirmed": "✅ Your withdrawal has been approved.\n\n💫 TON has been sent to your wallet.",
+    "rejected": "❌ Your request has been rejected because you failed to follow our project's rules.",
+    "auto_failed": "❌ Automatic payout failed right now. The withdrawal was cancelled and funds were returned to your balance. Please try again later or contact support."
   },
   "language": {
     "choose": "🌐 Choose your language:",
@@ -119,11 +147,16 @@
       "language": "🌐 Change language",
       "back": "🔙 Back to Menu",
       "back_settings": "🔙 Back",
-      "gift_promo": "🎁 Claim a GIFT"
+      "gift_promo": "🎁 Claim a GIFT",
+      "sell_stars": "💸 Sell Stars",
+      "mini_app": "🛍 Open Mini App"
     },
     "withdraw": {
       "main": "💸 Withdraw",
-      "back": "🔙 Back"
+      "back": "🔙 Back",
+      "save_wallet": "👛 Save wallet",
+      "use_saved": "✅ Use saved",
+      "change": "✏️ Change wallet"
     },
     "buy_stars": {
       "for_myself": "For myself",
@@ -134,6 +167,10 @@
       "tonkeeper": "↗️ Open in Tonkeeper",
       "confirm_payment": "✅ I have paid",
       "heleket": "💳 Buy with USDT / other crypto"
+    },
+    "sell_stars": {
+      "pay": "⭐️ Pay",
+      "back": "🔙 Back"
     },
     "buy_tg_premium": {
       "for_myself": "For myself",

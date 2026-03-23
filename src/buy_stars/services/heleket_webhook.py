@@ -11,6 +11,7 @@ import hashlib
 import base64
 from services.localization import t, get_lang
 from services.gift import handle_referral_gift_if_needed
+from services.admin_notifications import notify_admins_order_failed
 
 bot = Bot(token=BOT_TOKEN)
 router = APIRouter()
@@ -61,14 +62,14 @@ async def heleket_webhook(request: Request):
                     success = await buy_stars(order.to_username, order.stars_amount)
                 except Exception as e:
                     print(f"[Webhook] Ошибка в try_buy_stars: {e}")
-                    return {"ok": True, "message": "Retry later"}
+                    success = False
                 
             elif order.order_type == OrderType.PREMIUM:
                 try:
                     success = await buy_premium(order.to_username, order.premium_months)
                 except Exception as e:
                     print(f"[Webhook] Ошибка в try_buy_premium: {e}")
-                    return {"ok": True, "message": "Retry later"}
+                    success = False
                 
             else:
                 await bot.send_message(order.user.telegram_id, t(lang, 'payment.unknown_order'))
@@ -78,6 +79,7 @@ async def heleket_webhook(request: Request):
                 await mark_order_failed(session, order.id)
                 print(f"[process_order] Покупка не удалась, но транзакция найдена. Order #{order.id}")
                 await bot.send_message(order.user.telegram_id, t(lang, "payment.order_failed"))
+                await notify_admins_order_failed(bot, session, order, source="Heleket webhook")
                 return  # mark_failed — потому что TON уже пришёл, но Fragment не дал ответ, можно повторить по кнопке
             
             # Помечаем как оплаченный

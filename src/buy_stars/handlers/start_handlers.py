@@ -11,6 +11,7 @@ from requests.user_requests import get_user_by_telegram_id, add_user, increment_
 from keyboards.menu_keyboard import menu_button_keyboard, menu_keyboard
 from keyboards.language_keyboard import start_language_selection_keyboard
 from keyboards.settings_keyboard import settings_keyboard
+import json
 
 router = Router()
 
@@ -145,3 +146,51 @@ async def settings_callback(callback: types.CallbackQuery, state: FSMContext) ->
         else:
             raise
 
+
+@router.message(F.web_app_data)
+async def handle_web_app_data(message: types.Message) -> None:
+    data = message.web_app_data.data if message.web_app_data else ""
+    try:
+        payload = json.loads(data) if data else {}
+    except json.JSONDecodeError:
+        payload = {}
+
+    offer_id = payload.get("offerId")
+    action = payload.get("action")
+    event = payload.get("event")
+    order_type = payload.get("orderType")
+    lang = await get_lang(message.from_user.id)
+
+    if offer_id:
+        await message.answer(
+            f"Mini App request received: <b>{offer_id}</b>.\n"
+            "Checkout backend integration is the next step.",
+            parse_mode="HTML",
+        )
+        return
+
+    if action:
+        titles = {
+            "buy_stars": "⭐ Buy Stars",
+            "buy_tg_premium": "💎 TG Premium",
+            "sell_stars": "💸 Sell Stars",
+            "gift_promo": "🎁 Claim a GIFT",
+            "profile": "👤 Profile",
+        }
+        label = titles.get(action, action)
+        await message.answer(
+            f"Mini App action received: <b>{label}</b>.\n"
+            "Next step: open corresponding checkout/profile screen from Mini App.",
+            parse_mode="HTML",
+        )
+        return
+
+    if event == "miniapp_payment_confirmed":
+        text_key = "buy_tg_premium.confirm_payment" if order_type == "premium" else "buy_stars.confirm_payment"
+        await message.answer(
+            t(lang, text_key),
+            parse_mode="HTML",
+        )
+        return
+
+    await message.answer("Mini App data received.")
