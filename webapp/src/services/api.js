@@ -34,6 +34,36 @@ export async function createMiniAppStarsOrder(payload) {
   return data;
 }
 
+export async function getMiniAppStarsQuote(payload) {
+  const response = await fetch(buildUrl("/external/miniapp/stars/quote"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const rawText = await response.text();
+  let data = {};
+  try {
+    data = rawText ? JSON.parse(rawText) : {};
+  } catch {
+    data = {};
+  }
+
+  if (!response.ok) {
+    let detail = data?.detail;
+    if (Array.isArray(detail)) {
+      detail = detail.map((item) => item?.msg || JSON.stringify(item)).join("; ");
+    } else if (typeof detail !== "string") {
+      detail = rawText || `HTTP ${response.status}`;
+    }
+    throw new Error(`Failed to load stars quote: ${detail}`);
+  }
+
+  return data;
+}
+
 export async function createMiniAppPremiumOrder(payload) {
   const response = await fetch(buildUrl("/external/miniapp/premium/order"), {
     method: "POST",

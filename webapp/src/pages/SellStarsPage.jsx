@@ -42,6 +42,7 @@ export default function SellStarsPage({ initData, isActive, onOrdersUpdated, t }
   const [quoteUsdt, setQuoteUsdt] = useState("");
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [loadedOnce, setLoadedOnce] = useState(false);
+  const showQuote = Boolean(quoteUsdt) || quoteLoading;
 
   const loadPending = async ({ silent = false } = {}) => {
     if (!initData) return;
@@ -236,14 +237,14 @@ export default function SellStarsPage({ initData, isActive, onOrdersUpdated, t }
             />
           </div>
 
-          {quoteUsdt ? (
+          <div className={`overflow-hidden transition-all duration-200 ease-out ${showQuote ? "max-h-24 opacity-100 translate-y-0" : "max-h-0 opacity-0 -translate-y-1"}`}>
             <div className="rounded-xl border border-[#FFD767]/25 bg-[#FFD767]/10 px-3 py-3">
               <p className="text-xs uppercase tracking-[0.14em] text-[#FFD767]">{t.sellStarsEstimate}</p>
               <p className="mt-1 text-lg font-semibold text-tg-text">
                 {quoteLoading ? t.loading : `${quoteUsdt} USDT`}
               </p>
             </div>
-          ) : null}
+          </div>
 
           {error ? <p className="rounded-xl border border-red-400/40 bg-red-400/10 px-3 py-2 text-sm text-red-300">{error}</p> : null}
 

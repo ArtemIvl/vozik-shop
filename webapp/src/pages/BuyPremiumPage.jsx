@@ -14,6 +14,15 @@ function CountdownText({ seconds, prefix }) {
   return <p className="mt-1 text-xs text-star">{prefix}: {formatted}</p>;
 }
 
+function getStatusLabel(status, t) {
+  if (status === "PENDING") return t.statusPending;
+  if (status === "PROCESSING") return t.statusProcessing;
+  if (status === "PAID") return t.statusPaid;
+  if (status === "FAILED") return t.statusFailed;
+  if (status === "CANCELLED") return t.statusCancelled;
+  return status || "-";
+}
+
 export default function BuyPremiumPage({ initData, tgUser, sendData, isActive, onOrdersUpdated, t }) {
   const [recipientMode, setRecipientMode] = useState("self");
   const [username, setUsername] = useState("");
@@ -308,8 +317,14 @@ export default function BuyPremiumPage({ initData, tgUser, sendData, isActive, o
                   #{order.orderId} • {order.months} {t.months} • @{order.toUsername}
                 </p>
                 <p className="mt-1 text-xs text-tg-muted">
-                  {order.paymentType} • {order.priceTon ? `${order.priceTon} TON` : `${order.priceUsdt} USDT`} • {order.status}
+                  {order.paymentType} • {order.priceTon ? `${order.priceTon} TON` : `${order.priceUsdt} USDT`} • {getStatusLabel(order.status, t)}
                 </p>
+                {order.status === "PROCESSING" ? (
+                  <div className="mt-2 flex items-center gap-2 text-xs text-[#FFD767]">
+                    <span className="inline-flex h-4 w-4 animate-spin rounded-full border-2 border-[#FFD767]/30 border-t-[#FFD767]" />
+                    <span>{t.processingHint}</span>
+                  </div>
+                ) : null}
                 <CountdownText seconds={order.expiresInSeconds} prefix={t.expiresIn} />
               </button>
               <div className="mt-2 grid grid-cols-2 gap-2">

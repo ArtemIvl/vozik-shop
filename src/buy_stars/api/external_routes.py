@@ -14,6 +14,7 @@ from requests.sell_star_order_requests import (
     create_sell_star_order,
     get_sell_star_order_by_id,
     cancel_sell_star_order,
+    delete_sell_star_order,
     expire_pending_sell_star_orders,
 )
 from requests.withdrawal_requests import create_withdrawal_request
@@ -119,6 +120,12 @@ class MiniAppSellStarsOrderPayload(BaseModel):
 class MiniAppSellStarsQuotePayload(BaseModel):
     init_data: str
     stars_amount: int = Field(..., ge=50)
+
+
+class MiniAppStarsQuotePayload(BaseModel):
+    init_data: str
+    stars_amount: int = Field(..., ge=50)
+    payment_method: Literal["TON", "USDT"]
 
 
 class MiniAppSellStarsInvoicePayload(BaseModel):
@@ -286,6 +293,7 @@ async def miniapp_create_stars_order(
         return {
             "orderId": order.id,
             "paymentType": "TON",
+            "status": order.status.value,
             "starsAmount": payload.stars_amount,
             "toUsername": to_username,
             "priceTon": str(price),
@@ -307,11 +315,48 @@ async def miniapp_create_stars_order(
     return {
         "orderId": order.id,
         "paymentType": "USDT",
+        "status": order.status.value,
         "starsAmount": payload.stars_amount,
         "toUsername": to_username,
         "priceUsdt": str(price),
         "invoiceUrl": invoice_url,
         "expiresInSeconds": 1800,
+    }
+
+
+@router.post("/miniapp/stars/quote")
+async def miniapp_get_stars_quote(
+    payload: MiniAppStarsQuotePayload,
+    session: AsyncSession = Depends(get_async_session),
+):
+    user, _ = await get_authenticated_db_user(session, payload.init_data)
+    payment_type = PaymentType.TON if payload.payment_method == "TON" else PaymentType.USDT
+
+    if payment_type == PaymentType.TON:
+        try:
+            price = await calculate_star_price_in_ton(payload.stars_amount)
+        except Exception as e:
+            print(f"[miniapp_get_stars_quote] TON price fallback used: {e}")
+            price = (
+                Decimal(payload.stars_amount) * Decimal("0.015") * Decimal("1.14")
+            ).quantize(Decimal("0.001"), rounding=ROUND_UP)
+        return {
+            "starsAmount": payload.stars_amount,
+            "priceTon": str(price),
+            "currency": "TON",
+            "ok": True,
+            "language": user.language.value.lower(),
+        }
+
+    price = (
+        Decimal(payload.stars_amount) * Decimal("0.015") * Decimal("1.14")
+    ).quantize(Decimal("0.01"), rounding=ROUND_UP)
+    return {
+        "starsAmount": payload.stars_amount,
+        "priceUsdt": str(price),
+        "currency": "USDT",
+        "ok": True,
+        "language": user.language.value.lower(),
     }
 
 
@@ -332,19 +377,29 @@ async def miniapp_create_sell_stars_order(
     )
 
     if not bot:
+        await delete_sell_star_order(session, order.id, user.id)
         raise HTTPException(status_code=500, detail="BOT_TOKEN is not configured")
 
-    invoice_url = await bot.create_invoice_link(
-        title=t(lang, "sell_stars.invoice_title"),
-        description=t(lang, "sell_stars.invoice_description"),
-        payload=f"sellstars:{order.id}",
-        currency="XTR",
-        prices=[
-            LabeledPrice(
-                label=t(lang, "sell_stars.invoice_label"), amount=payload.stars_amount
-            )
-        ],
-    )
+    try:
+        invoice_url = await bot.create_invoice_link(
+            title=t(lang, "sell_stars.invoice_title"),
+            description=t(lang, "sell_stars.invoice_description"),
+            payload=f"sellstars:{order.id}",
+            currency="XTR",
+            prices=[
+                LabeledPrice(
+                    label=t(lang, "sell_stars.invoice_label"),
+                    amount=payload.stars_amount,
+                )
+            ],
+        )
+    except Exception as exc:
+        await delete_sell_star_order(session, order.id, user.id)
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    if not invoice_url:
+        await delete_sell_star_order(session, order.id, user.id)
+        raise HTTPException(status_code=502, detail="Unable to create sell stars invoice")
 
     return {
         "orderId": order.id,
@@ -520,12 +575,13 @@ async def miniapp_create_premium_order(
 
     if payment_type == PaymentType.TON:
         tonkeeper_links = build_tonkeeper_links(price, memo)
-        return {
-            "orderId": order.id,
-            "paymentType": "TON",
-            "months": payload.months,
-            "toUsername": to_username,
-            "priceTon": str(price),
+    return {
+        "orderId": order.id,
+        "paymentType": "TON",
+        "status": order.status.value,
+        "months": payload.months,
+        "toUsername": to_username,
+        "priceTon": str(price),
             "walletAddress": TON_WALLET_ADDRESS,
             "memo": memo,
             **tonkeeper_links,
@@ -544,6 +600,7 @@ async def miniapp_create_premium_order(
     return {
         "orderId": order.id,
         "paymentType": "USDT",
+        "status": order.status.value,
         "months": payload.months,
         "toUsername": to_username,
         "priceUsdt": str(price),

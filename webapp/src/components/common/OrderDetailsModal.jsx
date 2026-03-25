@@ -8,6 +8,15 @@ function copyText(value) {
   navigator.clipboard.writeText(String(value)).catch(() => null);
 }
 
+function getStatusLabel(status, t) {
+  if (status === "PENDING") return t.statusPending;
+  if (status === "PROCESSING") return t.statusProcessing;
+  if (status === "PAID") return t.statusPaid;
+  if (status === "FAILED") return t.statusFailed;
+  if (status === "CANCELLED") return t.statusCancelled;
+  return status || "-";
+}
+
 export default function OrderDetailsModal({ order, onClose, t }) {
   const [visible, setVisible] = useState(false);
   const [copiedField, setCopiedField] = useState("");
@@ -32,6 +41,8 @@ export default function OrderDetailsModal({ order, onClose, t }) {
     ? `${order.starsAmount} ${t.stars}`
     : `${order.months} ${t.months}`;
   const paymentAmountLabel = order.priceTon ? `${order.priceTon} TON` : `${order.priceUsdt || "-"} USDT`;
+  const statusLabel = getStatusLabel(order.status, t);
+  const isProcessing = order.status === "PROCESSING";
 
   const closeWithAnimation = () => {
     document.activeElement?.blur?.();
@@ -60,6 +71,19 @@ export default function OrderDetailsModal({ order, onClose, t }) {
           {t.order} #{order.orderId} • {t.recipient}: @{order.toUsername}
         </p>
         <p className="mt-1 text-xs text-star">{t.expiresIn}: {expiresIn}</p>
+
+        {order.status ? (
+          <div className="mt-3 rounded-xl border border-white/10 bg-tg-surface-soft p-3">
+            <p className="text-xs text-tg-muted">{t.status}</p>
+            <div className="mt-1 flex items-center gap-2">
+              {isProcessing ? (
+                <span className="inline-flex h-4 w-4 animate-spin rounded-full border-2 border-[#FFD767]/30 border-t-[#FFD767]" />
+              ) : null}
+              <p className="text-sm text-tg-text">{statusLabel}</p>
+            </div>
+            {isProcessing ? <p className="mt-2 text-xs text-tg-muted">{t.processingHint}</p> : null}
+          </div>
+        ) : null}
 
         <div className="mt-3 space-y-3">
           <div className="rounded-xl border border-white/10 bg-tg-surface-soft p-3">

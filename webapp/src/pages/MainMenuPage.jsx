@@ -11,6 +11,7 @@ export default function MainMenuPage({
   initData,
   t,
   onOpenLanguage,
+  onOpenBuyStars,
   supportUrl,
   onOpenGift
 }) {
@@ -52,7 +53,7 @@ export default function MainMenuPage({
           <LoadingPulse label={t.loading} />
         </div>
       ) : null}
-      {stats ? <StarMerchantCard stats={stats} t={t} /> : null}
+      {stats ? <StarMerchantCard stats={stats} t={t} onOpenBuyStars={onOpenBuyStars} /> : null}
       <button
         type="button"
         onClick={onOpenGift}

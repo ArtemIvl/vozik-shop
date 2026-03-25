@@ -16,7 +16,7 @@ poetry run python src/buy_stars/main.py
 ```
 4. Start webhook/api server (optional, for webhook routes):
 ```bash
-poetry run python src/buy_stars/webhook_server.py
+poetry run python src/buy_stars/server.py
 ```
 
 ## Mini App setup (React + Tailwind)
@@ -47,7 +47,7 @@ npm run build
 1. Host `webapp` build on an HTTPS URL (Telegram requires HTTPS for Mini Apps).
 2. Start backend API/webhook server and expose it via HTTPS:
 ```bash
-poetry run python src/buy_stars/webhook_server.py
+poetry run python src/buy_stars/server.py
 ```
 3. Set `MINI_APP_URL` in `.env` to frontend public URL.
 4. Set `VITE_API_BASE_URL` to backend public URL.

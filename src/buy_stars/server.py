@@ -1,6 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from services.heleket_webhook import router as heleket_router
 from api.external_routes import router as external_router
 from db.session import init_models
@@ -23,4 +24,4 @@ async def _startup() -> None:
 
 
 if __name__ == "__main__":
-    uvicorn.run("webhook_server:app", host="0.0.0.0", port=8001)
+    uvicorn.run("server:app", host="0.0.0.0", port=8001)
