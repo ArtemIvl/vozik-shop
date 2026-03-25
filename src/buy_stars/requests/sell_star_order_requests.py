@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from decimal import Decimal
 
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models.sell_star_order import SellStarOrder, SellStarOrderStatus
@@ -35,6 +35,21 @@ async def get_sell_star_order_by_id(
         select(SellStarOrder).where(SellStarOrder.id == order_id)
     )
     return result.scalar_one_or_none()
+
+
+async def delete_sell_star_order(
+    session: AsyncSession,
+    order_id: int,
+    user_id: int,
+) -> None:
+    await session.execute(
+        delete(SellStarOrder).where(
+            SellStarOrder.id == order_id,
+            SellStarOrder.user_id == user_id,
+            SellStarOrder.status == SellStarOrderStatus.PENDING,
+        )
+    )
+    await session.commit()
 
 
 async def mark_sell_star_order_paid(

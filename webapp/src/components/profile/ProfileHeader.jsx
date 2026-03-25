@@ -11,7 +11,7 @@ export default function ProfileHeader({
       <div className="absolute -left-8 -bottom-10 h-28 w-28 rounded-full bg-star/10 blur-2xl" />
 
       <div className="relative flex items-center gap-4">
-        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br from-vozik/25 to-emerald-500/20 shadow-lg shadow-black/20">
+        <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br from-vozik/25 to-emerald-500/20 shadow-lg shadow-black/20">
           <img
             src={logoSrc}
             alt="Vozik bot logo"
@@ -29,9 +29,9 @@ export default function ProfileHeader({
             {initials}
           </span>
         </div>
-        <div>
+        <div className="min-w-0 flex-1">
           <p className="text-xs uppercase tracking-[0.18em] text-tg-muted">Vozik Shop</p>
-          <h1 className="mt-1 text-xl font-semibold text-tg-text">{welcomeLabel}, {userLabel}</h1>
+          <h1 className="mt-1 text-xl font-semibold leading-tight text-tg-text">{welcomeLabel}, {userLabel}</h1>
         </div>
       </div>
 

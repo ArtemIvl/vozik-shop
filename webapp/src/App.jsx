@@ -139,6 +139,7 @@ export default function App() {
             t={t}
             supportUrl="https://t.me/VozikShop_support"
             onOpenLanguage={() => setLanguageOpen(true)}
+            onOpenBuyStars={() => handleNavSelect("buy_stars")}
             onOpenGift={() => {
               setVisitedPages((current) => new Set(current).add("gift_promo"));
               setActivePage("gift_promo");

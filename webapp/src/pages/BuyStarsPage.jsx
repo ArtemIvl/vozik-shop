@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import SegmentedSwitch from "../components/common/SegmentedSwitch";
-import { cancelMiniAppOrder, createMiniAppStarsOrder, getMiniAppOrderPaymentLink, getMiniAppPendingOrders } from "../services/api";
+import { cancelMiniAppOrder, createMiniAppStarsOrder, getMiniAppOrderPaymentLink, getMiniAppPendingOrders, getMiniAppStarsQuote } from "../services/api";
 import { openExternalLink, openTonkeeper } from "../services/tonkeeper";
 import OverlayNotice from "../components/common/OverlayNotice";
 import OrderDetailsModal from "../components/common/OrderDetailsModal";
@@ -11,6 +11,15 @@ import { useCountdown } from "../hooks/useCountdown";
 function CountdownText({ seconds, prefix }) {
   const { formatted } = useCountdown(seconds || 0);
   return <p className="mt-1 text-xs text-star">{prefix}: {formatted}</p>;
+}
+
+function getStatusLabel(status, t) {
+  if (status === "PENDING") return t.statusPending;
+  if (status === "PROCESSING") return t.statusProcessing;
+  if (status === "PAID") return t.statusPaid;
+  if (status === "FAILED") return t.statusFailed;
+  if (status === "CANCELLED") return t.statusCancelled;
+  return status || "-";
 }
 
 export default function BuyStarsPage({ initData, tgUser, sendData, isActive, onOrdersUpdated, t }) {
@@ -27,6 +36,9 @@ export default function BuyStarsPage({ initData, tgUser, sendData, isActive, onO
   const [confirmCancelOrder, setConfirmCancelOrder] = useState(null);
   const [watchedOrderIds, setWatchedOrderIds] = useState([]);
   const [loadedOnce, setLoadedOnce] = useState(false);
+  const [quoteAmount, setQuoteAmount] = useState("");
+  const [quoteCurrency, setQuoteCurrency] = useState("");
+  const [quoteLoading, setQuoteLoading] = useState(false);
 
   const selfUsername = tgUser?.username || "";
 
@@ -36,6 +48,7 @@ export default function BuyStarsPage({ initData, tgUser, sendData, isActive, onO
   }, [recipientMode, selfUsername, username]);
 
   const canSubmit = Number(starsAmount) >= 50 && !!targetUsername && !loading;
+  const showQuote = Boolean(quoteAmount) || quoteLoading;
 
   const loadPendingOrders = async ({ silent = false } = {}) => {
     if (!initData) return;
@@ -85,6 +98,48 @@ export default function BuyStarsPage({ initData, tgUser, sendData, isActive, onO
     }, 5000);
     return () => window.clearInterval(id);
   }, [initData, isActive, watchedOrderIds]);
+
+  useEffect(() => {
+    if (!initData) return undefined;
+
+    const parsed = Number(starsAmount);
+    if (!Number.isInteger(parsed) || parsed < 50) {
+      setQuoteAmount("");
+      setQuoteCurrency("");
+      setQuoteLoading(false);
+      return undefined;
+    }
+
+    let active = true;
+    setQuoteLoading(true);
+    const timeoutId = window.setTimeout(async () => {
+      try {
+        const response = await getMiniAppStarsQuote({
+          init_data: initData,
+          stars_amount: parsed,
+          payment_method: paymentMethod
+        });
+        if (active) {
+          setQuoteAmount(response.priceTon || response.priceUsdt || "");
+          setQuoteCurrency(response.currency || paymentMethod);
+        }
+      } catch {
+        if (active) {
+          setQuoteAmount("");
+          setQuoteCurrency("");
+        }
+      } finally {
+        if (active) {
+          setQuoteLoading(false);
+        }
+      }
+    }, 250);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timeoutId);
+    };
+  }, [initData, starsAmount, paymentMethod]);
 
   const handleCreateOrder = async (event) => {
     event.preventDefault();
@@ -252,6 +307,15 @@ export default function BuyStarsPage({ initData, tgUser, sendData, isActive, onO
             />
           </div>
 
+          <div className={`overflow-hidden transition-all duration-200 ease-out ${showQuote ? "max-h-24 opacity-100 translate-y-0" : "max-h-0 opacity-0 -translate-y-1"}`}>
+            <div className="rounded-xl border border-[#FFD767]/25 bg-[#FFD767]/10 px-3 py-3">
+              <p className="text-xs uppercase tracking-[0.14em] text-[#FFD767]">{t.buyStarsEstimate}</p>
+              <p className="mt-1 text-lg font-semibold text-tg-text">
+                {quoteLoading ? t.loading : `${quoteAmount} ${quoteCurrency}`}
+              </p>
+            </div>
+          </div>
+
           {error ? <p className="rounded-xl border border-red-400/40 bg-red-400/10 px-3 py-2 text-sm text-red-300">{error}</p> : null}
 
           <button
@@ -298,8 +362,14 @@ export default function BuyStarsPage({ initData, tgUser, sendData, isActive, onO
                   #{order.orderId} • {order.starsAmount} {t.stars} • @{order.toUsername}
                 </p>
                 <p className="mt-1 text-xs text-tg-muted">
-                  {order.paymentType} • {order.priceTon ? `${order.priceTon} TON` : `${order.priceUsdt} USDT`} • {order.status}
+                  {order.paymentType} • {order.priceTon ? `${order.priceTon} TON` : `${order.priceUsdt} USDT`} • {getStatusLabel(order.status, t)}
                 </p>
+                {order.status === "PROCESSING" ? (
+                  <div className="mt-2 flex items-center gap-2 text-xs text-[#FFD767]">
+                    <span className="inline-flex h-4 w-4 animate-spin rounded-full border-2 border-[#FFD767]/30 border-t-[#FFD767]" />
+                    <span>{t.processingHint}</span>
+                  </div>
+                ) : null}
                 <CountdownText seconds={order.expiresInSeconds} prefix={t.expiresIn} />
               </button>
               <div className="mt-2 grid grid-cols-2 gap-2">

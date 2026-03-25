@@ -17,7 +17,7 @@ export default function AppFooter({ supportUrl, supportLabel, languageLabel, onO
         aria-label={languageLabel}
         title={languageLabel}
       >
-        🌐
+        🌍
       </button>
     </footer>
   );

@@ -1,7 +1,25 @@
-export default function StarMerchantCard({ stats, t }) {
+export default function StarMerchantCard({ stats, t, onOpenBuyStars }) {
   const starsBought = stats?.purchasedStarsTotal || 0;
   const totalUsdt = stats?.totalEarnedUsdt || stats?.totalEarnedTon || "0.0000";
   const outperformPercent = stats?.outperformPercent ?? 0;
+  const scorePoints = stats?.scorePoints ?? 0;
+
+  if (scorePoints <= 0) {
+    return (
+      <section className="mt-4 rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(255,215,103,0.16),transparent_42%),linear-gradient(180deg,#151a21,#0f1116)] p-5 shadow-panel">
+        <p className="text-center text-[11px] uppercase tracking-[0.24em] text-[#FFD767]">{t.mainStatsLabel}</p>
+        <h2 className="mt-4 text-center text-xl font-semibold text-tg-text">{t.homeFirstPurchaseTitle}</h2>
+        <p className="mt-2 text-center text-sm leading-6 text-tg-muted">{t.homeFirstPurchaseText}</p>
+        <button
+          type="button"
+          onClick={onOpenBuyStars}
+          className="mt-5 w-full rounded-2xl bg-[linear-gradient(135deg,#FFD767,#ffefad,#FFD767)] px-4 py-3 text-sm font-semibold text-ink-dark shadow-[0_0_24px_rgba(255,215,103,0.28)] transition hover:scale-[1.01]"
+        >
+          {t.homeFirstPurchaseCta}
+        </button>
+      </section>
+    );
+  }
 
   return (
     <section className="mt-4 rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(255,215,103,0.12),transparent_42%),linear-gradient(180deg,#151a21,#0f1116)] p-4 shadow-panel">
